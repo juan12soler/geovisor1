@@ -1,0 +1,3145 @@
+<!DOCTYPE html>
+<html lang="es">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   Geovisor JEG S.A.S.
+  </title>
+  <link href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" rel="stylesheet"/>
+  <link href="https://unpkg.com/leaflet-control-layers/dist/leaflet.control.layers.min.css" rel="stylesheet"/>
+  <link href="https://unpkg.com/leaflet-measure/dist/leaflet-measure.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" rel="stylesheet"/>
+
+  <script src="https://unpkg.com/leaflet-measure/dist/leaflet-measure-es.js">
+  </script>
+  <script src="https://unpkg.com/leaflet-omnivore@0.4.1/leaflet-omnivore.min.js">
+  </script>
+  <style>
+   body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Calibri', sans-serif;
+        }
+
+        #map-container {
+            position: relative;
+            height: calc(104vh - 40px);
+        }
+
+        #map {
+            height: 100%;
+        }
+
+        #legend {
+            height: 900px;
+            width: 400px;
+            overflow-y: auto;
+            position: absolute;
+            bottom: 15px;
+            right: 10px;
+            z-index: 1000;
+            font-family: 'Arial', sans-serif;
+            color: #333;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border: 1px solid #000000;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .legend-item:hover {
+            background-color: #f2f2f2;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+        }
+
+        /* Estilos para los títulos de la leyenda */
+        .legend-title {
+            font-size: 16px; /* o el tamaño que prefieras */
+            font-weight: bold;
+            color: #3a6494; /* o el color que prefieras */
+            margin-bottom: 10px; /* Espaciado después del título */
+            text-align: center; /* Si quieres que el título esté centrado */
+        }
+
+        /* Estilo para los botones dentro de la leyenda */
+        .button-style {
+            background-color: #3a6494;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            margin-top: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .button-style:hover {
+            background-color: #2e4d6c;
+        }
+
+        .button-style {
+            background-color: #3a6494;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .boton-copiar {
+            background-color: #3a6494;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            /* Agrega cualquier otro estilo que desees aquí */
+        }
+        .toggle-button {
+            position: absolute;
+            top: 6px;
+            right: 10px;
+            z-index: 1010;
+            background-color: #dc3545; /* Fondo rojo */
+            color: white; /* Icono blanco */
+            font-size: 24px; /* Tamaño más grande */
+            width: 35px; /* Ancho fijo más grande */
+            height: 35px; /* Altura fija más grande */
+            border: none;
+            border-radius: 0%; /* Forma circular */
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .toggle-button.open {
+            background-color: #dc3545; /* Fondo rojo para el estado abierto */
+        }
+        #logo {
+        position: fixed; /* Posición fija respecto a la ventana del navegador */
+        bottom: 10px; /* 10px desde el fondo de la ventana */
+        right: 10px; /* 10px desde la derecha de la ventana */
+        width: 180px; /* Ancho fijo de la imagen */
+        height: auto; /* Altura automática para mantener la proporción de la imagen */
+        z-index: 1000; /* Asegura que la imagen se muestre por encima de otros elementos si es necesario */
+    }
+        /* Estilo básico para las listas desplegables */
+        select {
+            font-family: 'Calibri', sans-serif; /* Cambia a la fuente que prefieras */
+            font-size: 14px;
+            background-color: #f2f2f2; /* Color de fondo */
+            color: #333; /* Color del texto */
+            border: 1px solid #ccc; /* Estilo del borde */
+            padding: 5px 10px; /* Espaciado interno */
+            border-radius: 5px; /* Bordes redondeados */
+            appearance: none; /* Elimina el estilo predeterminado de la flecha */
+            -moz-appearance: none;
+            -webkit-appearance: none;
+            background-image: url('path_to_your_custom_arrow_image'); /* Ruta a tu imagen de flecha personalizada */
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+
+        /* Efecto al pasar el mouse */
+        select:hover {
+            border-color: #888;
+        }
+
+        /* Efecto al enfocar la lista */
+        select:focus {
+            outline: none;
+            border-color: #3a6494; /* Cambia al color que prefieras */
+            box-shadow: 0 0 5px rgba(58, 100, 148, 0.5); /* Sombra ligera para resaltar */
+        }
+        .group-button {
+            background-color: #4CAF50; /* Color de fondo */
+            color: white; /* Color del texto */
+            padding: 5px 12px; /* Espaciado interno */
+            font-size: 14px; /* Tamaño del texto */
+            border: none; /* Sin bordes */
+            cursor: pointer; /* Cursor en forma de mano */
+            transition: 0.3s; /* Transición suave para efectos */
+            border-radius: 5px; /* Bordes redondeados */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra para efecto 3D */
+            display: flex; /* Flexbox para alinear ícono y texto */
+            align-items: center; /* Alinea ítems verticalmente */
+        }
+
+        .group-button:hover {
+            background-color: #45a049; /* Color al pasar el ratón */
+        }
+
+        .group-button:active {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombra más pequeña al hacer clic */
+            transform: translateY(2px); /* Desplazamiento ligero al hacer clic */
+        }
+
+        .group-button i { /* Estilo para el ícono */
+            margin-right: 8px; /* Espacio entre ícono y texto */
+        }
+
+        .group-button .arrow { /* Estilo para la flecha del acordeón */
+            margin-left: auto; /* Mueve la flecha hacia la derecha */
+            transition: 0.3s; /* Transición suave para la rotación */
+        }
+
+        .group-button .arrow.rotate { /* Rotar flecha cuando está activo */
+            transform: rotate(180deg);
+        }
+
+
+  </style>
+ </head>
+ <body>
+  <div id="map-container">
+    <button id="toggleLegendButton" class="toggle-button" onclick="toggleLegend()">-</button>
+   <div id="map">
+   </div>
+   <div id="legend">
+    <h3 class="legend-title">CRITERIOS DE FILTRADO</h3>
+    <label for="departmentName">
+     Departamento:
+    </label>
+    <select id="departmentName" onchange="filtrarCapas()">
+    </select>
+    <br/><br/>
+    <label for="municipioName">
+     Municipio:
+    </label>
+    <select id="municipioName" onchange="filtrarCapas()">
+    </select>
+    <br/><br/>
+    <label for="periodoNumber">
+     Año:
+    </label>
+    <select id="periodoNumber" onchange="filtrarCapas()">
+    </select>
+    <br/><br/>
+    <label for="condJuridica">
+     Regimen:
+    </label>
+    <select id="condJuridica" onchange="filtrarCapas()">
+    </select>
+    <br/><br/>
+    <label for="tipoSuelo">
+     Tipo de Suelo:
+    </label>
+    <select id="tipoSuelo" onchange="filtrarCapas()">
+    </select>
+    <br/><br/>
+  <label for="inmuTipo">
+     Tipo de Inmueble:
+    </label>
+    <select id="inmuTipo" onchange="filtrarCapas()">
+    </select>
+    <br/><br/>
+        <label for="estudioTipo">
+     Tipo de Estudio:
+    </label>
+    <select id="estudioTipo" onchange="filtrarCapas()">
+    </select>
+    <br/><br/>
+    <label for="proyectoNumber"></label>
+    # Proyecto:
+   </label>
+   <select id="proyectoNumber" onchange="filtrarCapas()">
+   </select>
+   <br/><br/>
+    <label for="avaluoNumber"></label>
+     # Avaluo:
+    </label>
+    <select id="avaluoNumber" onchange="filtrarCapas()">
+    </select>
+    
+    <button id="resetButton" class="button-style">
+        Restablecer
+    </button>
+    <br/>
+    <br/>
+
+
+    <h3 class="legend-title">LEYENDA</h3>
+
+    <button class="group-button" onclick="toggleGroup('group1')">
+        <i class="icono-personalizado"></i>
+        Avaluos y Ofertas
+        <span class="arrow">&#9660;</span> 
+    </button>
+    
+    <div id="group1" style="display: none;">
+        <br/>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: red; border-radius: 50%; border: 1px solid black;width: 12px; height: 12px;"></div>
+            Avaluo
+            <label><input type="checkbox" id="avaluoLayerCheckbox"></label>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: green; border-radius: 50%; border: 1px solid black;width: 12px; height: 12px;"></div>
+            Oferta NPH
+            <label><input type="checkbox" id="ofertaNPHLayerCheckbox"></label>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: yellow; border-radius: 50%; border: 1px solid black;width: 12px; height: 12px;"></div>
+            Oferta PH
+            <label><input type="checkbox" id="ofertaPHLayerCheckbox"></label>
+        </div>
+    </div>
+    <br/>
+
+
+    <button class="group-button" onclick="toggleGroup('group2')">
+        <i class="icono-personalizado"></i>
+        Base predial
+        <span class="arrow">&#9660;</span> 
+    </button>
+        
+        <div id="group2" style="display: none;">
+        <br/>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(236, 166, 15); border: 1px solid black;width: 18px; height: 18px;"></div>
+            Predio
+            <label><input type="checkbox" id="predioLayerCheckbox"></label>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(233, 233, 236); border: 2px solid red;width: 18px; height: 18px;"></div>
+            Municipio
+            <label><input type="checkbox" id="municipioLayerCheckbox"></label>
+    </div>
+    </div>
+    <br/>
+
+    <button class="group-button" onclick="toggleGroup('group3')">
+        <i class="icono-personalizado"></i>
+        Valorización
+        <span class="arrow">&#9660;</span> 
+    </button>
+        
+        <div id="group3" style="display: none;">
+        <br/>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(22, 238, 112); border: 1px solid black;width: 18px; height: 18px;"></div>
+            Valorizacion
+            <label><input type="checkbox" id="valorizacionLayerCheckbox"></label>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(219, 199, 14); border: 1px solid black;width: 18px; height: 18px;"></div>
+            Predio Influencia (Valorización)
+            <label><input type="checkbox" id="predioInfluValoLayerCheckbox"></label>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(204, 77, 204); border: 1px solid black;width: 18px; height: 18px;"></div>
+            Predio Afectado
+            <label><input type="checkbox" id="afectadoLayerCheckbox"></label>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(206, 36, 24); border: 1px solid black;width: 18px; height: 18px;"></div>
+            Proyecto Vial
+            <label><input type="checkbox" id="proyectoLayerCheckbox"></label>
+        </div>
+    </div>
+    <br/>
+
+
+    <button class="group-button" onclick="toggleGroup('group4')">
+        <i class="icono-personalizado"></i>
+        Plusvalía
+        <span class="arrow">&#9660;</span> 
+    </button>
+
+    <div id="group4" style="display: none;">
+    <br/>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(9, 221, 236); border: 1px solid black;width: 18px; height: 18px;"></div>
+            Plusvalia
+            <label><input type="checkbox" id="plusvaliaLayerCheckbox"></label>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(224, 205, 27); border: 1px solid black;width: 18px; height: 18px;"></div>
+            Conformación Predial
+            <label><input type="checkbox" id="conformacionLayerCheckbox"></label>
+        </div>
+    </div>
+    <br/>
+
+    <button class="group-button" onclick="toggleGroup('group5')">
+        <i class="icono-personalizado"></i>
+        Zonas Homogeneas
+        <span class="arrow">&#9660;</span> 
+    </button>
+    
+    <div id="group5" style="display: none;">
+    <br/>  
+            <div id="customLayer2Control">
+              <button id="uploadButton2">ZHF Rural</button>
+              <input type="file" id="uploadGeoJSON2" accept=".geojson" style="display: none;" />
+              <label>
+                  <input type="checkbox" id="customLayer2Checkbox" disabled>
+                </div>
+                <br/>
+                <div id="customLayer4Control">
+                <button id="uploadButton4">ZHG Rural</button>
+                <input type="file" id="uploadGeoJSON4" accept=".geojson" style="display: none;" />
+                <label>
+                <input type="checkbox" id="customLayer4Checkbox" disabled>
+            </div>
+            <br/>
+            <div id="customLayerControl">
+                <button id="uploadButton">ZHF Urbana</button>
+                <input type="file" id="uploadGeoJSON" accept=".geojson" style="display: none;" />
+                <label>
+                    <input type="checkbox" id="customLayerCheckbox" disabled>
+                </div>
+                <br/>
+                <div id="customLayer3Control">
+                    <button id="uploadButton3">ZHG Urbana</button>
+                    <input type="file" id="uploadGeoJSON3" accept=".geojson" style="display: none;" />
+                    <label>
+                        <input type="checkbox" id="customLayer3Checkbox" disabled>
+         </div>
+         <br/>
+        <div id="customLayer5Control">
+            <button id="uploadButton5">ZHF Expansión</button>
+            <input type="file" id="uploadGeoJSON5" accept=".geojson" style="display: none;" />
+            <label>
+                <input type="checkbox" id="customLayer5Checkbox" disabled>
+            </div>
+            <br/>
+            <div id="customLayer6Control">
+              <button id="uploadButton6">ZHG Expansión</button>
+              <input type="file" id="uploadGeoJSON6" accept=".geojson" style="display: none;" />
+              <label>
+                  <input type="checkbox" id="customLayer6Checkbox" disabled>
+            </div>
+            <br/>
+            <div id="customLayer7Control">
+              <button id="uploadButton7">Subir GeoJson</button>
+              <input type="file" id="uploadGeoJSON7" accept=".geojson" style="display: none;" />
+              <label>
+                  <input type="checkbox" id="customLayer7Checkbox" disabled>
+        </div>
+    </div>
+    <br/>
+
+
+
+    <button class="group-button" onclick="toggleGroup('group7')">
+        <i class="icono-personalizado"></i>
+        IVP
+        <span class="arrow">&#9660;</span> 
+    </button>
+        
+        <div id="group7" style="display: none;">
+        <br/>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(22, 238, 105); border: 1px solid black;width: 18px; height: 18px;"></div>
+            Zona de valor
+            <label><input type="checkbox" id="ivpLayerCheckbox"></label>
+        </div>
+    </div>
+    <br/> 
+
+
+    <button class="group-button" onclick="toggleGroup('group6')">
+        <i class="icono-personalizado"></i>
+        Anexos
+        <span class="arrow">&#9660;</span> 
+    </button>
+        
+        <div id="group6" style="display: none;">
+        <br/>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(238, 22, 76); border: 1px solid black;width: 18px; height: 18px;"></div>
+            Cenit
+            <label><input type="checkbox" id="cenitLayerCheckbox"></label>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(0, 0, 0); border: 1px solid black;width: 18px; height: 18px;"></div>
+            Linea Cenit
+            <label><input type="checkbox" id="lcenitLayerCheckbox"></label>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(190, 9, 245); border: 1px solid black;width: 18px; height: 18px;"></div>
+            Franja de compra
+            <label><input type="checkbox" id="franjaLayerCheckbox"></label>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(241, 169, 14); border: 1px solid black;width: 18px; height: 18px;"></div>
+            Dictamenes
+            <label><input type="checkbox" id="dictamenLayerCheckbox"></label>
+        </div>
+    </div>
+    <br/>   
+    
+    <br/>
+
+        <button id="toggleLabelsBtn" class="button-style">
+            Etiqueta
+        </button>
+    <br/>
+        <button id="exportToExcelBtn" class="button-style">
+            Exportar a Excel
+        </button>
+        <img id="logo" src="data/IMAGENES/logo.png" alt="Logo" />
+    </div>
+    </div>
+   </div>
+  </div>
+  <div id="coordenadas" style="position: absolute; top: 910px; left: 120px; background: rgba(255, 255, 255, 0); padding: 5px; z-index: 1000;">
+    Coordenadas: <span id="coordenadasValor">N/A</span>
+ </body>
+</html>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-control-layers/dist/leaflet.control.layers.min.js"></script>
+<script src="https://unpkg.com/leaflet-measure/dist/leaflet-measure.js"></script>
+<script src="https://unpkg.com/leaflet-omnivore@0.4.1/leaflet-omnivore.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.2/xlsx.full.min.js"></script>
+
+</script>
+<!-- Enlace al script de leaflet-measure -->
+<script src="https://unpkg.com/leaflet-measure/dist/leaflet-measure.js">
+</script>
+<script>
+
+ var map = L.map('map').setView([4.6097, -74.0817], 12);
+ var labelsVisible = false; // Inicialmente las etiquetas están ocultas
+ var originalAvaluoData; 
+        var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 20  // Puedes ajustar este valor según tus necesidades
+        }).addTo(map);
+    
+        var satelliteLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+        });
+    
+        var baseLayers = {
+            "Mapa Base": osmLayer,
+            "Imagen Satelital": satelliteLayer,
+        };
+
+
+    
+L.control.layers(baseLayers, null, { position: 'topleft' }).addTo(map);
+
+        // Agregar la funcionalidad de medición
+        L.control.scale().addTo(map);
+        L.control.measure({
+            primaryLengthUnit: 'meters', // Establecer unidades de medida en metros
+            secondaryLengthUnit: false,   // Desactivar la unidad secundaria
+            primaryAreaUnit: 'meters',  // Establecer unidades de área en hectáreas
+            secondaryAreaUnit: false,     // Desactivar la unidad secundaria de área
+            position: 'topright',         // Posición del control en la esquina superior derecha
+            activeColor: '#FF0000',       // Cambiar el color activo a rojo
+            completedColor: '#C8F2BE', // Color de completado del control
+            position: 'topleft'     
+        }).addTo(map);
+
+        function changeBaseLayer(layer) {
+        if (layer === 'map') {
+            map.removeLayer(satelliteLayer);
+            osmLayer.addTo(map);
+        } else if (layer === 'satellite') {
+            map.removeLayer(osmLayer);
+            satelliteLayer.addTo(map);
+        }
+    }
+
+    var drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+
+    var drawControl = new L.Control.Draw({
+        edit: {
+            featureGroup: drawnItems
+        },
+        draw: {
+            polygon: true,
+            polyline: false,
+            rectangle: false,
+            circle: false,
+            marker: false
+        }
+    });
+
+    map.addControl(drawControl);
+
+    var drawnPolygon;
+
+    map.on(L.Draw.Event.CREATED, function (e) {
+        var type = e.layerType;
+        var layer = e.layer;
+
+        if (type === 'polygon') {
+            drawnItems.clearLayers();  // Eliminar polígonos anteriores
+            drawnItems.addLayer(layer); // Agregar nuevo polígono
+            drawnPolygon = layer;       // Almacenar el polígono dibujado
+        }
+    });
+            //Cargar datos departamento
+            fetch(`data/municipio.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                var departamento = data.features.map(feature => feature.properties.nom_dep);
+                departamento = Array.from(new Set(departamento)).sort();
+
+                var selectDepartamento = document.getElementById('departmentName');
+                selectDepartamento.innerHTML = "";
+                var optionSelectDepartamento = document.createElement('option');
+                optionSelectDepartamento.value = 'Seleccionar';
+                optionSelectDepartamento.text = 'Seleccionar';
+                selectDepartamento.add(optionSelectDepartamento);
+                departamento.forEach(departamento => {
+                    var option = document.createElement('option');
+                    option.value = departamento;
+                    option.text = departamento;
+                    selectDepartamento.add(option);
+                });
+            })
+
+            function actualizarCoordenadas(latlng) {
+                var coordenadasTexto = latlng.lat.toFixed(5) + ", " + latlng.lng.toFixed(5);
+                document.getElementById('coordenadasValor').textContent = coordenadasTexto;
+            }
+
+            // Event listener para el movimiento del mouse
+            map.on('mousemove', function(e) {
+                actualizarCoordenadas(e.latlng);
+            });
+
+
+            var ultimasCoordenadas = null; // Almacenará las últimas coordenadas del puntero
+
+            // Actualizar las coordenadas del puntero cada vez que se mueve en el mapa
+            map.on('mousemove', function(e) {
+                ultimasCoordenadas = e.latlng;
+            });
+
+            // Función para copiar texto al portapapeles
+            function copiarAlPortapapeles(texto) {
+                navigator.clipboard.writeText(texto).then(function() {
+                    console.log('Coordenadas copiadas al portapapeles');
+                }).catch(function(err) {
+                    console.error('Error al copiar al portapapeles: ', err);
+                });
+            }
+
+            // Escuchar la combinación de teclas Ctrl + C
+            document.addEventListener('keydown', function(event) {
+                if (event.ctrlKey && event.key === 'c') {
+                    if (ultimasCoordenadas) {
+                        var textoParaCopiar = `Latitud: ${ultimasCoordenadas.lat}, Longitud: ${ultimasCoordenadas.lng}`;
+                        copiarAlPortapapeles(textoParaCopiar);
+                    }
+                }
+            });
+
+            // Event listener para copiar al portapapeles
+            document.getElementById('coordenadas').addEventListener('click', function() {
+                var coordenadas = document.getElementById('coordenadasValor').textContent;
+                navigator.clipboard.writeText(coordenadas)
+                    .then(() => alert("Coordenadas copiadas al portapapeles: " + coordenadas))
+                    .catch(err => console.error('Error al copiar las coordenadas', err));
+            });
+                    //Cargar datos municipio
+        fetch(`data/avaluo.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                var municipio = data.features.map(feature => feature.properties.nom_mun);
+                municipio = Array.from(new Set(municipio)).sort();
+
+                var selectmunicipio = document.getElementById('municipioName');
+                selectmunicipio.innerHTML = "";
+                var optionSelectmunicipio = document.createElement('option');
+                optionSelectmunicipio.value = 'Seleccionar';
+                optionSelectmunicipio.text = 'Seleccionar';
+                selectmunicipio.add(optionSelectmunicipio);
+                municipio.forEach(municipio => {
+                    var option = document.createElement('option');
+                    option.value = municipio;
+                    option.text = municipio;
+                    selectmunicipio.add(option);
+                });
+            })
+        //cargar lista de años
+        fetch(`data/avaluo.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                var periodo = data.features.map(feature => feature.properties.periodo);
+                periodo = Array.from(new Set(periodo)).sort();
+
+                var selectperiodo = document.getElementById('periodoNumber');
+                selectperiodo.innerHTML = "";
+                var optionSelectperiodo = document.createElement('option');
+                optionSelectperiodo.value = 'Seleccionar';
+                optionSelectperiodo.text = 'Seleccionar';
+                selectperiodo.add(optionSelectperiodo);
+                periodo.forEach(periodo => {
+                    var option = document.createElement('option');
+                    option.value = periodo;
+                    option.text = periodo;
+                    selectperiodo.add(option);
+                });
+            })
+        //cargar lista de tipos de suelo
+        fetch(`data/avaluo.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                var suelo = data.features.map(feature => feature.properties.t_suelo);
+                suelo = Array.from(new Set(suelo)).sort();
+
+                var selectsuelo = document.getElementById('tipoSuelo');
+                selectsuelo.innerHTML = "";
+                var optionSelectsuelo = document.createElement('option');
+                optionSelectsuelo.value = 'Seleccionar';
+                optionSelectsuelo.text = 'Seleccionar';
+                selectsuelo.add(optionSelectsuelo);
+                suelo.forEach(suelo => {
+                    var option = document.createElement('option');
+                    option.value = suelo;
+                    option.text = suelo;
+                    selectsuelo.add(option);
+                });
+            })
+            //cargar lista condicion juridica
+            fetch(`data/avaluo.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                var cjuridica = data.features.map(feature => feature.properties.cond_juri);
+                cjuridica = Array.from(new Set(cjuridica)).sort();
+
+                var selectcjuridica = document.getElementById('condJuridica');
+                selectcjuridica.innerHTML = "";
+                var optionSelectcjuridica = document.createElement('option');
+                optionSelectcjuridica.value = 'Seleccionar';
+                optionSelectcjuridica.text = 'Seleccionar';
+                selectcjuridica.add(optionSelectcjuridica);
+                cjuridica.forEach(cjuridica => {
+                    var option = document.createElement('option');
+                    option.value = cjuridica;
+                    option.text = cjuridica;
+                    selectcjuridica.add(option);
+                });
+            })
+        //cargar lista de avaluos
+        fetch(`data/avaluo.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                var navaluo = data.features.map(feature => feature.properties.num_avaluo);
+                navaluo = Array.from(new Set(navaluo)).sort();
+
+                var selectNavaluo = document.getElementById('avaluoNumber');
+                selectNavaluo.innerHTML = "";
+                var optionSelectNavaluo = document.createElement('option');
+                optionSelectNavaluo.value = 'Seleccionar';
+                optionSelectNavaluo.text = 'Seleccionar';
+                selectNavaluo.add(optionSelectNavaluo);
+                navaluo.forEach(navaluo => {
+                    var option = document.createElement('option');
+                    option.value = navaluo;
+                    option.text = navaluo;
+                    selectNavaluo.add(option);
+                });
+            })
+        
+        //cargar lista tipo de estudio
+
+        fetch(`data/avaluo.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                var testudio = data.features.map(feature => feature.properties.t_estudio);
+                testudio = Array.from(new Set(testudio)).sort();
+
+                var selectTestudio = document.getElementById('estudioTipo');
+                selectTestudio.innerHTML = "";
+                var optionSelectTestudio = document.createElement('option');
+                optionSelectTestudio.value = 'Seleccionar';
+                optionSelectTestudio.text = 'Seleccionar';
+                selectTestudio.add(optionSelectTestudio);
+                testudio.forEach(testudio => {
+                    var option = document.createElement('option');
+                    option.value = testudio;
+                    option.text = testudio;
+                    selectTestudio.add(option);
+                });
+            })
+        //cargar lista numero de proyecto
+
+        fetch(`data/avaluo.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                var proyecto = data.features.map(feature => feature.properties.proy_num);
+                proyecto = Array.from(new Set(proyecto)).sort();
+
+                var selectProyecto = document.getElementById('proyectoNumber');
+                selectProyecto.innerHTML = "";
+                var optionSelectProyecto = document.createElement('option');
+                optionSelectProyecto.value = 'Seleccionar';
+                optionSelectProyecto.text = 'Seleccionar';
+                selectProyecto.add(optionSelectProyecto);
+                proyecto.forEach(proyecto => {
+                    var option = document.createElement('option');
+                    option.value = proyecto;
+                    option.text = proyecto;
+                    selectProyecto.add(option);
+                });
+            })
+
+        fetch(`data/avaluo.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                var inmueble = data.features.map(feature => feature.properties.ti_inmue);
+                inmueble = Array.from(new Set(inmueble)).sort();
+
+                var selectInmueble = document.getElementById('inmuTipo');
+                selectInmueble.innerHTML = "";
+                var optionSelectInmueble = document.createElement('option');
+                optionSelectInmueble.value = 'Seleccionar';
+                optionSelectInmueble.text = 'Seleccionar';
+                selectInmueble.add(optionSelectInmueble);
+                inmueble.forEach(inmueble => {
+                    var option = document.createElement('option');
+                    option.value = inmueble;
+                    option.text = inmueble;
+                    selectInmueble.add(option);
+                });
+            })
+
+    var customLayer;
+    document.getElementById('uploadButton').addEventListener('click', function() {
+    document.getElementById('uploadGeoJSON').click();
+});
+
+document.getElementById('uploadGeoJSON').addEventListener('change', function(event) {
+    var file = event.target.files[0];
+    if (file) {
+        var reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+        reader.onload = function(evt) {
+            try {
+                var geojsonData = JSON.parse(evt.target.result);
+                if (customLayer) {
+                    map.removeLayer(customLayer);
+                }
+                customLayer = L.geoJSON(geojsonData, {
+                    style: function (feature) {
+                        var attributeValue = feature.properties.ZHF ? feature.properties.ZHF : feature.properties.V_M2_TER;
+                        if (!colorMap[attributeValue]) {
+                            colorMap[attributeValue] = getRandomColor();
+                        }
+                        return {
+                            fillColor: colorMap[attributeValue],
+                            weight: 1,
+                            opacity: 0.5,
+                            color: 'black',
+                            fillOpacity: 0.8
+                        };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        layer.on('click', function(e) {
+                            mostrarTablaAtributos(feature.properties, e.latlng);
+                        });
+                    }
+                }).addTo(map);
+
+                // Calcular los límites de la capa y ajustar el zoom del mapa
+                var layerBounds = customLayer.getBounds();
+                if (layerBounds.isValid()) { // Verifica si los límites son válidos
+                    map.fitBounds(layerBounds);
+                }
+
+                document.getElementById('customLayerCheckbox').disabled = false;
+                document.getElementById('customLayerCheckbox').checked = true;
+            } catch (error) {
+                alert('Error al leer el archivo GeoJSON: ' + error.message);
+            }
+        };
+        reader.onerror = function(evt) {
+            alert('Error al leer el archivo');
+        };
+    }
+});
+
+
+var customLayer2;
+    document.getElementById('uploadButton2').addEventListener('click', function() {
+    document.getElementById('uploadGeoJSON2').click();
+});
+
+document.getElementById('uploadGeoJSON2').addEventListener('change', function(event) {
+    var file = event.target.files[0];
+    if (file) {
+        var reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+        reader.onload = function(evt) {
+            try {
+                var geojsonData2 = JSON.parse(evt.target.result);
+                if (customLayer2) {
+                    map.removeLayer(customLayer2);
+                }
+                customLayer2 = L.geoJSON(geojsonData2, {
+                    style: function (feature) {
+                        var attributeValue = feature.properties.ZHF ? feature.properties.ZHF : feature.properties.V_M2_TER;
+                        if (!colorMap[attributeValue]) {
+                            colorMap[attributeValue] = getRandomColor();
+                        }
+                        return {
+                            fillColor: colorMap[attributeValue],
+                            weight: 1,
+                            opacity: 0.5,
+                            color: 'black',
+                            fillOpacity: 0.8
+                        };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        layer.on('click', function(e) {
+                            mostrarTablaAtributos(feature.properties, e.latlng);
+                        });
+                    }
+                }).addTo(map);
+
+                // Calcular los límites de la capa y ajustar el zoom del mapa
+                var layerBounds2 = customLayer2.getBounds();
+                if (layerBounds2.isValid()) { // Verifica si los límites son válidos
+                    map.fitBounds(layerBounds2);
+                }
+                document.getElementById('customLayer2Checkbox').disabled = false;
+                document.getElementById('customLayer2Checkbox').checked = true;
+            } catch (error) {
+                alert('Error al leer el archivo GeoJSON: ' + error.message);
+            }
+        };
+        reader.onerror = function(evt) {
+            alert('Error al leer el archivo');
+        };
+    }
+});
+
+var customLayer3;
+    document.getElementById('uploadButton3').addEventListener('click', function() {
+    document.getElementById('uploadGeoJSON3').click();
+});
+
+document.getElementById('uploadGeoJSON3').addEventListener('change', function(event) {
+    var file = event.target.files[0];
+    if (file) {
+        var reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+        reader.onload = function(evt) {
+            try {
+                var geojsonData3 = JSON.parse(evt.target.result);
+                if (customLayer3) {
+                    map.removeLayer(customLayer3);
+                }
+                customLayer3 = L.geoJSON(geojsonData3, {
+                    style: function (feature) {
+                        var attributeValue = feature.properties.ZHF ? feature.properties.ZHF : feature.properties.V_M2_TER;
+                        if (!colorMap[attributeValue]) {
+                            colorMap[attributeValue] = getRandomColor();
+                        }
+                        return {
+                            fillColor: colorMap[attributeValue],
+                            weight: 1,
+                            opacity: 0.5,
+                            color: 'black',
+                            fillOpacity: 0.8
+                        };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        layer.on('click', function(e) {
+                            mostrarTablaAtributos(feature.properties, e.latlng);
+                        });
+                    }
+                }).addTo(map);
+                // Calcular los límites de la capa y ajustar el zoom del mapa
+                var layerBounds3 = customLayer3.getBounds();
+                if (layerBounds3.isValid()) { // Verifica si los límites son válidos
+                    map.fitBounds(layerBounds3);
+                }
+                document.getElementById('customLayer3Checkbox').disabled = false;
+                document.getElementById('customLayer3Checkbox').checked = true;
+            } catch (error) {
+                alert('Error al leer el archivo GeoJSON: ' + error.message);
+            }
+        };
+        reader.onerror = function(evt) {
+            alert('Error al leer el archivo');
+        };
+    }
+});
+
+var customLayer4;
+    document.getElementById('uploadButton4').addEventListener('click', function() {
+    document.getElementById('uploadGeoJSON4').click();
+});
+
+document.getElementById('uploadGeoJSON4').addEventListener('change', function(event) {
+    var file = event.target.files[0];
+    if (file) {
+        var reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+        reader.onload = function(evt) {
+            try {
+                var geojsonData4 = JSON.parse(evt.target.result);
+                if (customLayer4) {
+                    map.removeLayer(customLayer4);
+                }
+                customLayer4 = L.geoJSON(geojsonData4, {
+                    style: function (feature) {
+                        var attributeValue = feature.properties.ZHF ? feature.properties.ZHF : feature.properties.V_M2_TER;
+                        if (!colorMap[attributeValue]) {
+                            colorMap[attributeValue] = getRandomColor();
+                        }
+                        return {
+                            fillColor: colorMap[attributeValue],
+                            weight: 1,
+                            opacity: 0.5,
+                            color: 'black',
+                            fillOpacity: 0.8
+                        };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        layer.on('click', function(e) {
+                            mostrarTablaAtributos(feature.properties, e.latlng);
+                        });
+                    }
+                }).addTo(map);
+                // Calcular los límites de la capa y ajustar el zoom del mapa
+                var layerBounds4 = customLayer4.getBounds();
+                if (layerBounds4.isValid()) { // Verifica si los límites son válidos
+                    map.fitBounds(layerBounds4);
+                }
+                document.getElementById('customLayer4Checkbox').disabled = false;
+                document.getElementById('customLayer4Checkbox').checked = true;
+            } catch (error) {
+                alert('Error al leer el archivo GeoJSON: ' + error.message);
+            }
+        };
+        reader.onerror = function(evt) {
+            alert('Error al leer el archivo');
+        };
+    }
+});
+
+var customLayer5;
+    document.getElementById('uploadButton5').addEventListener('click', function() {
+    document.getElementById('uploadGeoJSON5').click();
+});
+
+document.getElementById('uploadGeoJSON5').addEventListener('change', function(event) {
+    var file = event.target.files[0];
+    if (file) {
+        var reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+        reader.onload = function(evt) {
+            try {
+                var geojsonData5 = JSON.parse(evt.target.result);
+                if (customLayer5) {
+                    map.removeLayer(customLayer5);
+                }
+                customLayer5 = L.geoJSON(geojsonData5, {
+                    style: function (feature) {
+                        var attributeValue = feature.properties.ZHF ? feature.properties.ZHF : feature.properties.V_M2_TER;
+                        if (!colorMap[attributeValue]) {
+                            colorMap[attributeValue] = getRandomColor();
+                        }
+                        return {
+                            fillColor: colorMap[attributeValue],
+                            weight: 1,
+                            opacity: 0.5,
+                            color: 'black',
+                            fillOpacity: 0.8
+                        };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        layer.on('click', function(e) {
+                            mostrarTablaAtributos(feature.properties, e.latlng);
+                        });
+                    }
+                }).addTo(map);
+                // Calcular los límites de la capa y ajustar el zoom del mapa
+                var layerBounds5 = customLayer5.getBounds();
+                if (layerBounds5.isValid()) { // Verifica si los límites son válidos
+                    map.fitBounds(layerBounds5);
+                }
+                document.getElementById('customLayer5Checkbox').disabled = false;
+                document.getElementById('customLayer5Checkbox').checked = true;
+            } catch (error) {
+                alert('Error al leer el archivo GeoJSON: ' + error.message);
+            }
+        };
+        reader.onerror = function(evt) {
+            alert('Error al leer el archivo');
+        };
+    }
+});
+
+var customLayer6;
+    document.getElementById('uploadButton6').addEventListener('click', function() {
+    document.getElementById('uploadGeoJSON6').click();
+});
+
+document.getElementById('uploadGeoJSON6').addEventListener('change', function(event) {
+    var file = event.target.files[0];
+    if (file) {
+        var reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+        reader.onload = function(evt) {
+            try {
+                var geojsonData6 = JSON.parse(evt.target.result);
+                if (customLayer6) {
+                    map.removeLayer(customLayer6);
+                }
+                customLayer6 = L.geoJSON(geojsonData6, {
+                    style: function (feature) {
+                        var attributeValue = feature.properties.ZHF ? feature.properties.ZHF : feature.properties.V_M2_TER;
+                        if (!colorMap[attributeValue]) {
+                            colorMap[attributeValue] = getRandomColor();
+                        }
+                        return {
+                            fillColor: colorMap[attributeValue],
+                            weight: 1,
+                            opacity: 0.5,
+                            color: 'black',
+                            fillOpacity: 0.8
+                        };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        layer.on('click', function(e) {
+                            mostrarTablaAtributos(feature.properties, e.latlng);
+                        });
+                    }
+                }).addTo(map);
+                // Calcular los límites de la capa y ajustar el zoom del mapa
+                var layerBounds6 = customLayer6.getBounds();
+                if (layerBounds6.isValid()) { // Verifica si los límites son válidos
+                    map.fitBounds(layerBounds6);
+                }
+                document.getElementById('customLayer6Checkbox').disabled = false;
+                document.getElementById('customLayer6Checkbox').checked = true;
+            } catch (error) {
+                alert('Error al leer el archivo GeoJSON: ' + error.message);
+            }
+        };
+        reader.onerror = function(evt) {
+            alert('Error al leer el archivo');
+        };
+    }
+});
+
+var customLayer7;
+    document.getElementById('uploadButton7').addEventListener('click', function() {
+    document.getElementById('uploadGeoJSON7').click();
+});
+document.getElementById('uploadGeoJSON7').addEventListener('change', function(event) {
+    var file = event.target.files[0];
+    if (file) {
+        var reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+        reader.onload = function(evt) {
+            try {
+                var geojsonData7 = JSON.parse(evt.target.result);
+                if (customLayer7) {
+                    map.removeLayer(customLayer7);
+                }
+                customLayer7 = L.geoJSON(geojsonData7, {
+                    style: function (feature) {
+                        var attributeValue = feature.properties.ID_ZVS;
+                        if (!colorMap[attributeValue]) {
+                            colorMap[attributeValue] = getRandomColor();
+                        }
+                        return {
+                            fillColor: colorMap[attributeValue],
+                            weight: 1,
+                            opacity: 0.5,
+                            color: 'black',
+                            fillOpacity: 0.8
+                        };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        layer.on('click', function(e) {
+                            mostrarTablaAtributos(feature.properties, e.latlng);
+                        });
+                    }
+                }).addTo(map);
+                // Calcular los límites de la capa y ajustar el zoom del mapa
+                var layerBounds7 = customLayer7.getBounds();
+                if (layerBounds7.isValid()) { // Verifica si los límites son válidos
+                    map.fitBounds(layerBounds7);
+                }
+                document.getElementById('customLayer7Checkbox').disabled = false;
+                document.getElementById('customLayer7Checkbox').checked = true;
+            } catch (error) {
+                alert('Error al leer el archivo GeoJSON: ' + error.message);
+            }
+        };
+        reader.onerror = function(evt) {
+            alert('Error al leer el archivo');
+        };
+    }
+});
+
+document.getElementById('customLayerCheckbox').addEventListener('change', function(event) {
+    if (this.checked) {
+        customLayer.addTo(map);
+    } else {
+        map.removeLayer(customLayer);
+    }
+
+    actualizarOrdenCapas();
+});
+
+document.getElementById('customLayer2Checkbox').addEventListener('change', function(event) {
+    if (this.checked) {
+        customLayer2.addTo(map);
+    } else {
+        map.removeLayer(customLayer2);
+    }
+
+    actualizarOrdenCapas();
+});
+document.getElementById('customLayer3Checkbox').addEventListener('change', function(event) {
+    if (this.checked) {
+        customLayer3.addTo(map);
+    } else {
+        map.removeLayer(customLayer3);
+    }
+
+    actualizarOrdenCapas();
+});
+
+document.getElementById('customLayer4Checkbox').addEventListener('change', function(event) {
+    if (this.checked) {
+        customLayer4.addTo(map);
+    } else {
+        map.removeLayer(customLayer4);
+    }
+
+    actualizarOrdenCapas();
+});
+
+document.getElementById('customLayer5Checkbox').addEventListener('change', function(event) {
+    if (this.checked) {
+        customLayer5.addTo(map);
+    } else {
+        map.removeLayer(customLayer5);
+    }
+
+    actualizarOrdenCapas();
+});
+
+document.getElementById('customLayer6Checkbox').addEventListener('change', function(event) {
+    if (this.checked) {
+        customLayer6.addTo(map);
+    } else {
+        map.removeLayer(customLayer6);
+    }
+
+    actualizarOrdenCapas();
+});
+
+document.getElementById('customLayer7Checkbox').addEventListener('change', function(event) {
+    if (this.checked) {
+        customLayer7.addTo(map);
+    } else {
+        map.removeLayer(customLayer7);
+    }
+
+    actualizarOrdenCapas();
+});
+
+var colorMap = {};
+
+
+fetch(`data/linea_cenit.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                originalCenittData = data;
+                lcenitLayer = L.geoJSON(data, {
+                    style: function (feature) {
+                        return {
+                            fillColor: 'rgb(15, 22, 238)',
+                            weight: 1,
+                            opacity: 0.5,
+                            color: 'red',
+                            fillOpacity: 0.8,
+                        };
+                    },
+
+                    onEachFeature: function (feature, layer) {
+                        layer.on('click', function (e) {
+                        mostrarTablaAtributos(e.target.feature.properties, e.latlng, "Linea Cenit");
+                    });
+                }
+                });
+
+                // Agregar la capa de municipio al mapa
+                cenitLayer.addTo(map);
+                map.removeLayer(cenitLayer);
+
+            });
+
+        // Agrega capa de cenit (Polígonos grises)
+        fetch(`data/cenit.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                originalCenitData = data;
+                cenitLayer = L.geoJSON(data, {
+                    style: function (feature) {
+                        return {
+                            fillColor: 'rgb(238, 22, 76)',
+                            weight: 1,
+                            opacity: 0.5,
+                            color: 'black',
+                            fillOpacity: 0.8,
+                        };
+                    },
+
+                    onEachFeature: function (feature, layer) {
+                        layer.on('click', function (e) {
+                        mostrarTablaAtributos(e.target.feature.properties, e.latlng, "Cenit");
+                    });
+                }
+                });
+
+                // Agregar la capa de municipio al mapa
+                cenitLayer.addTo(map);
+                map.removeLayer(cenitLayer);
+
+            });
+
+            fetch(`data/franja_compra.geojson?_=${new Date().getTime()}`)
+    .then(response => response.json())
+    .then(data => {
+        originalFranjatData = data;
+        franjaLayer = L.geoJSON(data, {
+            style: function (feature) {
+                return {
+                    color: 'rgb(190, 9, 245)', // Color de la línea
+                    weight: 2, // Grosor de la línea
+                    opacity: 1, // Opacidad de la línea
+                };
+            },
+
+            onEachFeature: function (feature, layer) {
+                layer.on('click', function (e) {
+                    mostrarTablaAtributos(e.target.feature.properties, e.latlng, "Franja de compra");
+                });
+            }
+        });
+
+        // Agregar la capa de línea al mapa
+        franjaLayer.addTo(map);
+        map.removeLayer(franjaLayer);
+        // Si necesitas eliminar alguna otra capa, puedes hacerlo aquí
+    });
+
+    fetch(`data/dictamen.geojson?_=${new Date().getTime()}`)
+    .then(response => response.json())
+    .then(data => {
+        originaldictamenData = data;
+        dictamenLayer = L.geoJSON(data, {
+            style: function (feature) {
+                return {
+                    color: 'rgb(241, 169, 14)', // Color de la línea
+                    weight: 2, // Grosor de la línea
+                    opacity: 1, // Opacidad de la línea
+                };
+            },
+
+            onEachFeature: function (feature, layer) {
+                layer.on('click', function (e) {
+                    mostrarTablaAtributos(e.target.feature.properties, e.latlng, "Dictamenes");
+                });
+            }
+        });
+
+        // Agregar la capa de línea al mapa
+        dictamenLayer.addTo(map);
+        map.removeLayer(dictamenLayer);
+        // Si necesitas eliminar alguna otra capa, puedes hacerlo aquí
+    });
+
+
+        // Agrega capa de municipio (Polígonos grises)
+        fetch(`data/municipio.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                originalMunicipioData = data;
+                municipioLayer = L.geoJSON(data, {
+                    style: function (feature) {
+                        return {
+                            fillColor: 'rgb(233, 233, 236)',
+                            weight: 3,
+                            opacity: 1,
+                            color: 'red',
+                            fillOpacity: 0.2,
+                        };
+                    },
+
+                    onEachFeature: function (feature, layer) {
+                        layer.on('click', function (e) {
+                        mostrarTablaAtributos(e.target.feature.properties, e.latlng, "Municipio");
+                    });
+                }
+                });
+
+                // Agregar la capa de municipio al mapa
+                municipioLayer.addTo(map);
+                map.removeLayer(municipioLayer);
+
+            });
+        
+        // Agregar capa de predios (poligonos anaranjados)
+
+        fetch(`data/predio.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                originalPredioData = data;
+                predioLayer = L.geoJSON(data, {
+                    style: function (feature) {
+                        return {
+                            fillColor: 'rgb(236, 166, 15)',
+                            weight: 1,
+                            opacity: 0.5,
+                            color: 'black',
+                            fillOpacity: 0.8,
+                        };
+                    },
+                    onEachFeature: function (feature, layer) {
+                        layer.on('click', function (e) {
+                        mostrarTablaAtributos(e.target.feature.properties, e.latlng, "Predio");
+                    });
+                }
+                });
+
+                // Agregar la capa de municipio al mapa, pero inicialmente apagada
+                predioLayer.addTo(map);
+                map.removeLayer(predioLayer);
+            });
+
+fetch(`data/ivp.geojson?_=${new Date().getTime()}`)
+    .then(response => response.json())
+    .then(data => {
+        originalIvpData = data;
+        ivpLayer = L.geoJSON(data, {
+            style: function (feature) {
+                var attributeValue = feature.properties.ID_ZVS;
+                if (!colorMap[attributeValue]) {
+                    colorMap[attributeValue] = getRandomColor();
+                }
+                return {
+                    fillColor: colorMap[attributeValue],
+                    weight: 1,
+                    opacity: 0.5,
+                    color: 'black',
+                    fillOpacity: 0.8,
+                };
+            },
+            onEachFeature: function (feature, layer) {
+                layer.on('click', function (e) {
+                    mostrarTablaAtributos(e.target.feature.properties, e.latlng, "Zona de valor");
+                });
+            }
+        });
+
+        ivpLayer.addTo(map);
+        map.removeLayer(ivpLayer);
+    });
+
+        // Agregar capa de predios (poligonos cian)
+
+        fetch(`data/plusvalia.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                originalPlusvaliaData = data;
+                plusvaliaLayer = L.geoJSON(data, {
+                    style: function (feature) {
+                        return {
+                            fillColor: 'rgb(9, 221, 236)',
+                            weight: 1,
+                            opacity: 100,
+                            color: 'black',
+                            fillOpacity: 100,
+                        };
+                    },
+                    onEachFeature: function (feature, layer) {
+                        layer.on('click', function (e) {
+                        mostrarTablaAtributos(e.target.feature.properties, e.latlng, "Plusvalia");
+                    });
+                }
+                });
+
+                // Agregar la capa de municipio al mapa, pero inicialmente apagada
+                predioLayer.addTo(map);
+                map.removeLayer(predioLayer);
+            });
+
+        // Agregar capa de predios (poligonos cian)
+
+        fetch(`data/conformacion_predial.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                originalConformacionData = data;
+                conformacionLayer = L.geoJSON(data, {
+                    style: function (feature) {
+                        return {
+                            fillColor: 'rgb(224, 205, 27)',
+                            weight: 1,
+                            opacity: 0.8,
+                            color: 'black',
+                            fillOpacity: 0.8,
+                        };
+                    },
+                    onEachFeature: function (feature, layer) {
+                        layer.on('click', function (e) {
+                        mostrarTablaAtributos(e.target.feature.properties, e.latlng, "Plusvalia");
+                    });
+                }
+                });
+
+                // Agregar la capa de municipio al mapa, pero inicialmente apagada
+                predioLayer.addTo(map);
+                map.removeLayer(predioLayer);
+            });
+
+        // Agregar capa de predios afectados (poligonos morados)
+
+        fetch(`data/predio_afectado.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                originalPredio_afectadoData = data;
+                predio_afectadoLayer = L.geoJSON(data, {
+                    style: function (feature) {
+                        return {
+                            fillColor: 'rgb(204, 77, 204)',
+                            weight: 1,
+                            opacity: 0.5,
+                            color: 'black',
+                            fillOpacity: 0.8,
+                        };
+                    },
+                    onEachFeature: function (feature, layer) {
+                        layer.on('click', function (e) {
+                        mostrarTablaAtributos(e.target.feature.properties, e.latlng, "Predio Afectado");
+                    });
+                }
+                });
+
+                // Agregar la capa de municipio al mapa, pero inicialmente apagada
+                predio_afectadoLayer.addTo(map);
+                map.removeLayer(predio_afectadoLayer);
+            });
+
+        // Agregar capa de predios influenciados valo (poligonos naranjas)
+
+        fetch(`data/predio_influencia.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                originalPredio_influ_valoData = data;
+                predioInfluValoLayer = L.geoJSON(data, {
+                    style: function (feature) {
+                        return {
+                            fillColor: 'rgb(219, 199, 14)',
+                            weight: 1,
+                            opacity: 0.5,
+                            color: 'black',
+                            fillOpacity: 0.8,
+                        };
+                    },
+                    onEachFeature: function (feature, layer) {
+                        layer.on('click', function (e) {
+                        mostrarTablaAtributos(e.target.feature.properties, e.latlng, "Predio Influencia (Valorización)");
+                    });
+                }
+                });
+
+                // Agregar la capa de municipio al mapa, pero inicialmente apagada
+                predio_afectadoLayer.addTo(map);
+                map.removeLayer(predio_afectadoLayer);
+            });
+        // Agregar capa de proyecto (poligonos azules)
+
+        fetch(`data/proy_vial.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                originalProyectoData = data;
+                proyectoLayer = L.geoJSON(data, {
+                    style: function (feature) {
+                        return {
+                            fillColor: 'rgb(206, 36, 24)',
+                            weight: 1,
+                            opacity: 0.5,
+                            color: 'black',
+                            fillOpacity: 0.8,
+                        };
+                    },
+                    onEachFeature: function (feature, layer) {
+                        layer.on('click', function (e) {
+                        mostrarTablaAtributos(e.target.feature.properties, e.latlng, "Proyecto Vial");
+                    });
+                }
+                });
+
+                // Agregar la capa de municipio al mapa, pero inicialmente apagada
+                proyectoLayer.addTo(map);
+                map.removeLayer(proyectoLayer);
+            });
+
+        // Agregar capa de valorizacion (poligonos verdes)
+
+        fetch(`data/valorizacion.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                originalValorizacionData = data;
+                valorizacionLayer = L.geoJSON(data, {
+                    style: function (feature) {
+                        return {
+                            fillColor: 'rgb(22, 238, 112)',
+                            weight: 1,
+                            opacity: 100,
+                            color: 'black',
+                            fillOpacity: 100,
+                        };
+                    },
+                    onEachFeature: function (feature, layer) {
+                        layer.on('click', function (e) {
+                        mostrarTablaAtributos(e.target.feature.properties, e.latlng, "Valorizacion");
+                    });
+                }
+                });
+
+                // Agregar la capa de municipio al mapa, pero inicialmente apagada
+                valorizacionLayer.addTo(map);
+                map.removeLayer(valorizacionLayer);
+            });
+                    // Agrega capa de Oferta_nph
+        fetch(`data/oferta_nph.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                originalOferta_nphData = data; // Guardar los datos originales
+                oferta_nphLayer = L.geoJSON(data, {
+                    pointToLayer: function (feature, latlng) {
+                        return L.circleMarker(latlng, {
+                            radius: 5,
+                            fillColor: 'green',
+                            color: '#000',
+                            weight: 1,
+                            opacity: 1,
+                            fillOpacity: 0.8
+                        });
+                    },
+                    onEachFeature: function (feature, layer) {
+                        layer.on('click', function (e) {
+                            mostrarTablaAtributos(e.target.feature.properties, e.latlng, "Oferta NPH");
+                        });
+                    }
+                });
+
+                // Agregar la capa de Oferta_nph al mapa, pero inicialmente apagada
+                oferta_nphLayer.addTo(map);
+                map.removeLayer(oferta_nphLayer);
+            });
+        
+        // Agrega capa de Oferta_ph
+        fetch(`data/oferta_ph.geojson?_=${new Date().getTime()}`)
+            .then(response => response.json())
+            .then(data => {
+                originalOferta_phData = data; // Guardar los datos originales
+                oferta_phLayer = L.geoJSON(data, {
+                    pointToLayer: function (feature, latlng) {
+                        return L.circleMarker(latlng, {
+                            radius: 5,
+                            fillColor: 'yellow',
+                            color: '#000',
+                            weight: 1,
+                            opacity: 1,
+                            fillOpacity: 0.8
+                        });
+                    },
+                    onEachFeature: function (feature, layer) {
+                        layer.on('click', function (e) {
+                            mostrarTablaAtributos(e.target.feature.properties, e.latlng, "Oferta PH");
+                        });
+                    }
+                });
+
+                // Agregar la capa de Oferta al mapa, pero inicialmente apagada
+                oferta_phLayer.addTo(map);
+                map.removeLayer(oferta_phLayer);
+            });
+        // Agrega capa de avaluo
+        fetch(`data/avaluo.geojson?_=${new Date().getTime()}`)
+        .then(response => response.json())
+        .then(data => {
+            originalAvaluoData = data;
+            avaluoLayer = L.geoJSON(data, {
+                pointToLayer: function (feature, latlng) {
+                    var marker = L.circleMarker(latlng, {
+                        radius: 5,
+                        fillColor: 'red',
+                        color: '#000',
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    });
+
+                    // Modificar evento click para manejar objetos cercanos
+                    marker.on('click', function (e) {
+                        var objetosCercanos = buscarObjetosCercanos(e.latlng, avaluoLayer, 1); // Ajusta el radio según sea necesario
+                        mostrarSeleccionObjetos(objetosCercanos, e.latlng, "Avaluo");
+                    });
+
+                    return marker;
+                }
+            });
+
+            // Agregar la capa de Avaluo al mapa, pero inicialmente apagada
+            avaluoLayer.addTo(map);
+            map.removeLayer(avaluoLayer);
+        });
+
+     //filtrar municipios en funcion de la lista de departamentos y si hay avaluos
+     document.getElementById('departmentName').addEventListener('change', function () {
+        // Obtener el departamento seleccionado
+        var selectedDepartment = this.value;
+
+        // Filtrar la lista de municipios según el departamento y si hay avalúos asociados
+        var filteredMunicipios = originalMunicipioData.features.filter(function (feature) {
+            var hasAvaluos = originalAvaluoData.features.some(function (avaluo) {
+                return avaluo.properties.nom_dep === feature.properties.nom_dep && avaluo.properties.nom_mun === feature.properties.nom_mun;
+            });
+
+            return (selectedDepartment === 'Seleccionar' || feature.properties.nom_dep === selectedDepartment) && hasAvaluos;
+        });
+
+        // Actualizar la lista de municipios
+        var selectMunicipio = document.getElementById('municipioName');
+        selectMunicipio.innerHTML = "";
+        var optionSelectMunicipio = document.createElement('option');
+        optionSelectMunicipio.value = 'Seleccionar';
+        optionSelectMunicipio.text = 'Seleccionar';
+        selectMunicipio.add(optionSelectMunicipio);
+
+        filteredMunicipios.forEach(function (feature) {
+            var option = document.createElement('option');
+            option.value = feature.properties.nom_mun;
+            option.text = feature.properties.nom_mun;
+            selectMunicipio.add(option);
+        });
+        ordenarOpcionesSelect('municipioName');
+
+        // Filtrar los datos al cambiar el departamento
+        filtrarCapas();
+    });
+
+    // filtrar años en funcion al departamento
+    document.getElementById('departmentName').addEventListener('change', function () {
+        // Obtener el departamento seleccionado
+        var selectedDepartment = this.value;
+
+        // Filtrar la lista de números de avalúo según el departamento seleccionado
+        var filteredPeriodoNumbers = originalAvaluoData.features
+            .filter(function (avaluo) {
+                return selectedDepartment === 'Seleccionar' || avaluo.properties.nom_dep === selectedDepartment;
+            })
+            .map(function (avaluo) {
+                return avaluo.properties.periodo;
+            });
+
+        // Obtener los números de avalúo únicos
+        var uniquePeriodoNumbers = [...new Set(filteredPeriodoNumbers)].sort();
+
+        // Actualizar la lista de números de avalúo
+        var selectPeriodoNumber = document.getElementById('periodoNumber');
+        selectPeriodoNumber.innerHTML = "";
+        var optionSelectPeriodoNumber = document.createElement('option');
+        optionSelectPeriodoNumber.value = 'Seleccionar';
+        optionSelectPeriodoNumber.text = 'Seleccionar';
+        selectPeriodoNumber.add(optionSelectPeriodoNumber);
+
+        uniquePeriodoNumbers.forEach(function (periodoNumber) {
+            var option = document.createElement('option');
+            option.value = periodoNumber;
+            option.text = periodoNumber;
+            selectPeriodoNumber.add(option);
+        });
+
+        // Filtrar los datos
+        filtrarCapas();
+    });
+
+        // filtrar años en funcion al departamento y municipio
+        document.getElementById('municipioName').addEventListener('change', function () {
+        // Obtener el departamento y municipio seleccionados
+        var selectedDepartment = document.getElementById('departmentName').value;
+        var selectedMunicipio = this.value;
+
+        var filteredPeriodoNumbers = originalAvaluoData.features
+            .filter(function (avaluo) {
+                return (selectedDepartment === 'Seleccionar' || avaluo.properties.nom_dep === selectedDepartment) &&
+                    (selectedMunicipio === 'Seleccionar' || avaluo.properties.nom_mun === selectedMunicipio);
+            })
+            .map(function (avaluo) {
+                return avaluo.properties.periodo;
+            });
+
+        // Obtener los números de avalúo únicos
+        var uniquePeriodoNumbers = [...new Set(filteredPeriodoNumbers)].sort();
+
+        // Actualizar la lista de números de avalúo
+        var selectPeriodoNumber = document.getElementById('periodoNumber');
+        selectPeriodoNumber.innerHTML = "";
+        var optionSelectPeriodoNumber = document.createElement('option');
+        optionSelectPeriodoNumber.value = 'Seleccionar';
+        optionSelectPeriodoNumber.text = 'Seleccionar';
+        selectPeriodoNumber.add(optionSelectPeriodoNumber);
+
+        uniquePeriodoNumbers.forEach(function (periodoNumber) {
+            var option = document.createElement('option');
+            option.value = periodoNumber;
+            option.text = periodoNumber;
+            selectPeriodoNumber.add(option);
+        });
+
+        // Filtrar los datos
+        filtrarCapas();
+    });
+
+            // filtrar años en funcion al departamento y municipio
+            document.getElementById('municipioName').addEventListener('change', function () {
+        // Obtener el departamento y municipio seleccionados
+        var selectedDepartment = document.getElementById('departmentName').value;
+        var selectedMunicipio = this.value;
+
+        var filteredPeriodoNumbers = originalAvaluoData.features
+            .filter(function (avaluo) {
+                return (selectedDepartment === 'Seleccionar' || avaluo.properties.nom_dep === selectedDepartment) &&
+                    (selectedMunicipio === 'Seleccionar' || avaluo.properties.nom_mun === selectedMunicipio);
+            })
+            .map(function (avaluo) {
+                return avaluo.properties.periodo;
+            });
+
+        // Obtener los números de avalúo únicos
+        var uniquePeriodoNumbers = [...new Set(filteredPeriodoNumbers)].sort();
+
+        // Actualizar la lista de números de avalúo
+        var selectPeriodoNumber = document.getElementById('periodoNumber');
+        selectPeriodoNumber.innerHTML = "";
+        var optionSelectPeriodoNumber = document.createElement('option');
+        optionSelectPeriodoNumber.value = 'Seleccionar';
+        optionSelectPeriodoNumber.text = 'Seleccionar';
+        selectPeriodoNumber.add(optionSelectPeriodoNumber);
+
+        uniquePeriodoNumbers.forEach(function (periodoNumber) {
+            var option = document.createElement('option');
+            option.value = periodoNumber;
+            option.text = periodoNumber;
+            selectPeriodoNumber.add(option);
+        });
+
+        // Filtrar los datos
+        filtrarCapas();
+    });
+
+
+// Event listener para el cambio en el departamento
+document.getElementById('departmentName').addEventListener('change', function () {
+    // Obtener el departamento seleccionado
+    var selectedDepartment = this.value;
+
+    // Filtrar la lista de números de avalúo según el departamento seleccionado
+    var filteredAvaluoNumbers = originalAvaluoData.features
+        .filter(function (avaluo) {
+            return selectedDepartment === 'Seleccionar' || avaluo.properties.nom_dep === selectedDepartment;
+        })
+        .map(function (avaluo) {
+            return avaluo.properties.num_avaluo;
+        });
+
+    // Obtener los números de avalúo únicos
+    var uniqueAvaluoNumbers = [...new Set(filteredAvaluoNumbers)].sort();
+
+    // Actualizar la lista de números de avalúo
+    var selectAvaluoNumber = document.getElementById('avaluoNumber');
+    selectAvaluoNumber.innerHTML = "";
+    var optionSelectAvaluoNumber = document.createElement('option');
+    optionSelectAvaluoNumber.value = 'Seleccionar';
+    optionSelectAvaluoNumber.text = 'Seleccionar';
+    selectAvaluoNumber.add(optionSelectAvaluoNumber);
+
+    uniqueAvaluoNumbers.forEach(function (avaluoNumber) {
+        var option = document.createElement('option');
+        option.value = avaluoNumber;
+        option.text = avaluoNumber;
+        selectAvaluoNumber.add(option);
+    });
+
+    // Filtrar los datos
+    filtrarCapas();
+});
+
+// Event listener para el cambio en el municipio
+document.getElementById('municipioName').addEventListener('change', function () {
+    // Obtener el departamento y municipio seleccionados
+    var selectedDepartment = document.getElementById('departmentName').value;
+    var selectedMunicipio = this.value;
+
+    // Filtrar la lista de números de avalúo según el departamento y municipio seleccionados
+    var filteredAvaluoNumbers = originalAvaluoData.features
+        .filter(function (avaluo) {
+            return (selectedDepartment === 'Seleccionar' || avaluo.properties.nom_dep === selectedDepartment) &&
+                (selectedMunicipio === 'Seleccionar' || avaluo.properties.nom_mun === selectedMunicipio);
+        })
+        .map(function (avaluo) {
+            return avaluo.properties.num_avaluo;
+        });
+
+    // Obtener los números de avalúo únicos
+    var uniqueAvaluoNumbers = [...new Set(filteredAvaluoNumbers)].sort();
+
+    // Actualizar la lista de números de avalúo
+    var selectAvaluoNumber = document.getElementById('avaluoNumber');
+    selectAvaluoNumber.innerHTML = "";
+    var optionSelectAvaluoNumber = document.createElement('option');
+    optionSelectAvaluoNumber.value = 'Seleccionar';
+    optionSelectAvaluoNumber.text = 'Seleccionar';
+    selectAvaluoNumber.add(optionSelectAvaluoNumber);
+
+    uniqueAvaluoNumbers.forEach(function (avaluoNumber) {
+        var option = document.createElement('option');
+        option.value = avaluoNumber;
+        option.text = avaluoNumber;
+        selectAvaluoNumber.add(option);
+    });
+
+    // Filtrar los datos
+    filtrarCapas();
+});
+
+// Event listener para el cambio en el año
+document.getElementById('periodoNumber').addEventListener('change', function () {
+    // Obtener el departamento, municipio y año seleccionados
+    var selectedDepartment = document.getElementById('departmentName').value;
+    var selectedPeriodo = this.value;
+    var selectedMunicipio = document.getElementById('municipioName').value;
+
+    // Filtrar la lista de números de avalúo según el departamento y municipio seleccionados
+    var filteredAvaluoNumbers = originalAvaluoData.features
+        .filter(function (avaluo) {
+            return (selectedDepartment === 'Seleccionar' || avaluo.properties.nom_dep === selectedDepartment) &&
+                (selectedMunicipio === 'Seleccionar' || avaluo.properties.nom_mun === selectedMunicipio)&&
+                (selectedPeriodo === 'Seleccionar' || avaluo.properties.periodo === selectedPeriodo);
+        })
+        .map(function (avaluo) {
+            return avaluo.properties.num_avaluo;
+        });
+
+    // Obtener los números de avalúo únicos
+    var uniqueAvaluoNumbers = [...new Set(filteredAvaluoNumbers)].sort();
+
+    // Actualizar la lista de números de avalúo
+    var selectAvaluoNumber = document.getElementById('avaluoNumber');
+    selectAvaluoNumber.innerHTML = "";
+    var optionSelectAvaluoNumber = document.createElement('option');
+    optionSelectAvaluoNumber.value = 'Seleccionar';
+    optionSelectAvaluoNumber.text = 'Seleccionar';
+    selectAvaluoNumber.add(optionSelectAvaluoNumber);
+
+    uniqueAvaluoNumbers.forEach(function (avaluoNumber) {
+        var option = document.createElement('option');
+        option.value = avaluoNumber;
+        option.text = avaluoNumber;
+        selectAvaluoNumber.add(option);
+    });
+
+    // Filtrar los datos
+    filtrarCapas();
+});
+
+// Event listener para el cambio en el tipo de suelo
+document.getElementById('tipoSuelo').addEventListener('change', function () {
+    // Obtener el departamento, municipio, año y tipo de suelo seleccionados
+    var selectedDepartment = document.getElementById('departmentName').value;
+    var selectedPeriodo = document.getElementById('periodoNumber').value;
+    var selectedSuelo = this.value;
+    var selectedMunicipio = document.getElementById('municipioName').value;
+
+    // Filtrar la lista de números de avalúo según el departamento y municipio seleccionados
+    var filteredAvaluoNumbers = originalAvaluoData.features
+        .filter(function (avaluo) {
+            return (selectedDepartment === 'Seleccionar' || avaluo.properties.nom_dep === selectedDepartment) &&
+                (selectedMunicipio === 'Seleccionar' || avaluo.properties.nom_mun === selectedMunicipio)&&
+                (selectedPeriodo === 'Seleccionar' || avaluo.properties.periodo === selectedPeriodo)&&
+                (selectedSuelo === 'Seleccionar' || avaluo.properties.t_suelo === selectedSuelo);
+        })
+        .map(function (avaluo) {
+            return avaluo.properties.num_avaluo;
+        });
+
+    // Obtener los números de avalúo únicos
+    var uniqueAvaluoNumbers = [...new Set(filteredAvaluoNumbers)].sort();
+
+    // Actualizar la lista de números de avalúo
+    var selectAvaluoNumber = document.getElementById('avaluoNumber');
+    selectAvaluoNumber.innerHTML = "";
+    var optionSelectAvaluoNumber = document.createElement('option');
+    optionSelectAvaluoNumber.value = 'Seleccionar';
+    optionSelectAvaluoNumber.text = 'Seleccionar';
+    selectAvaluoNumber.add(optionSelectAvaluoNumber);
+
+    uniqueAvaluoNumbers.forEach(function (avaluoNumber) {
+        var option = document.createElement('option');
+        option.value = avaluoNumber;
+        option.text = avaluoNumber;
+        selectAvaluoNumber.add(option);
+    });
+
+    // Filtrar los datos
+    filtrarCapas();
+});
+
+// Event listener para el cambio en el tipo de suelo
+document.getElementById('condJuridica').addEventListener('change', function () {
+    // Obtener el departamento, municipio, año y tipo de suelo seleccionados
+    var selectedDepartment = document.getElementById('departmentName').value;
+    var selectedPeriodo = document.getElementById('periodoNumber').value;
+    var selectedSuelo = document.getElementById('tipoSuelo').value;
+    var selectedMunicipio = document.getElementById('municipioName').value;
+    var selectedRegimen = this.value;
+
+
+    // Filtrar la lista de números de avalúo según el departamento y municipio seleccionados
+    var filteredAvaluoNumbers = originalAvaluoData.features
+        .filter(function (avaluo) {
+            return (selectedDepartment === 'Seleccionar' || avaluo.properties.nom_dep === selectedDepartment) &&
+                (selectedMunicipio === 'Seleccionar' || avaluo.properties.nom_mun === selectedMunicipio)&&
+                (selectedPeriodo === 'Seleccionar' || avaluo.properties.periodo === selectedPeriodo)&&
+                (selectedSuelo === 'Seleccionar' || avaluo.properties.t_suelo === selectedSuelo)&&
+                (selectedRegimen === 'Seleccionar' || avaluo.properties.cond_juri === selectedRegimen);
+        })
+        .map(function (avaluo) {
+            return avaluo.properties.num_avaluo;
+        });
+
+    // Obtener los números de avalúo únicos
+    var uniqueAvaluoNumbers = [...new Set(filteredAvaluoNumbers)].sort();
+
+    // Actualizar la lista de números de avalúo
+    var selectAvaluoNumber = document.getElementById('avaluoNumber');
+    selectAvaluoNumber.innerHTML = "";
+    var optionSelectAvaluoNumber = document.createElement('option');
+    optionSelectAvaluoNumber.value = 'Seleccionar';
+    optionSelectAvaluoNumber.text = 'Seleccionar';
+    selectAvaluoNumber.add(optionSelectAvaluoNumber);
+
+    uniqueAvaluoNumbers.forEach(function (avaluoNumber) {
+        var option = document.createElement('option');
+        option.value = avaluoNumber;
+        option.text = avaluoNumber;
+        selectAvaluoNumber.add(option);
+    });
+
+    // Filtrar los datos
+    filtrarCapas();
+});
+
+// filtrar tipo inmueble en funcion al departamento
+document.getElementById('departmentName').addEventListener('change', function () {
+    // Obtener el departamento seleccionado
+    var selectedDepartment = this.value;
+    var filteredInmuebles = originalAvaluoData.features
+        .filter(function (avaluo) {
+            return selectedDepartment === 'Seleccionar' || avaluo.properties.nom_dep === selectedDepartment;
+        })
+        .map(function (avaluo) {
+            return avaluo.properties.t_inmue;
+        });
+
+    // Obtener los tipos de inmueble únicos
+    var uniqueInmuebles = [...new Set(filteredInmuebles)].sort();
+
+    // Actualizar la lista de tipos de inmueble
+    var selectInmueble = document.getElementById('inmuTipo');
+    selectInmueble.innerHTML = "";
+    var optionSelectInmueble = document.createElement('option');
+    optionSelectInmueble.value = 'Seleccionar';
+    optionSelectInmueble.text = 'Seleccionar';
+    selectInmueble.add(optionSelectInmueble);
+
+    uniqueInmuebles.forEach(function (inmueble) {
+        var option = document.createElement('option');
+        option.value = inmueble;
+        option.text = inmueble;
+        selectInmueble.add(option);
+    });
+
+    // Filtrar los datos
+    filtrarCapas();
+});
+
+//filtrar tipo de inmueble por departamento y municipio
+document.getElementById('municipioName').addEventListener('change', function () {
+    // Obtener el departamento y municipio seleccionados
+    var selectedDepartment = document.getElementById('departmentName').value;
+    var selectedMunicipio = this.value;
+
+    // Filtrar la lista de números de avalúo según el departamento y municipio seleccionados
+    var filteredInmuebles = originalAvaluoData.features
+        .filter(function (avaluo) {
+            return (selectedDepartment === 'Seleccionar' || avaluo.properties.nom_dep === selectedDepartment) &&
+                (selectedMunicipio === 'Seleccionar' || avaluo.properties.nom_mun === selectedMunicipio);
+        })
+        .map(function (avaluo) {
+            return avaluo.properties.t_inmue;
+        });
+
+    // Obtener los tipos de inmueble únicos
+    var uniqueInmuebles = [...new Set(filteredInmuebles)].sort();
+
+    // Actualizar la lista de tipos de inmueble
+    var selectInmueble = document.getElementById('inmuTipo');
+    selectInmueble.innerHTML = "";
+    var optionSelectInmueble = document.createElement('option');
+    optionSelectInmueble.value = 'Seleccionar';
+    optionSelectInmueble.text = 'Seleccionar';
+    selectInmueble.add(optionSelectInmueble);
+
+    uniqueInmuebles.forEach(function (inmueble) {
+        var option = document.createElement('option');
+        option.value = inmueble;
+        option.text = inmueble;
+        selectInmueble.add(option);
+    });
+
+    // Filtrar los datos
+    filtrarCapas();
+});
+
+//filtrar tipo de inmueble por departamento, municipio y regimen
+
+document.getElementById('condJuridica').addEventListener('change', function () {
+    // Obtener el departamento y municipio seleccionados
+    var selectedDepartment = document.getElementById('departmentName').value;
+    var selectedMunicipio = document.getElementById('municipioName').value;
+    var selectedRegimen = this.value;
+
+
+    // Filtrar la lista de números de avalúo según el departamento y municipio seleccionados
+    var filteredInmuebles = originalAvaluoData.features
+        .filter(function (avaluo) {
+            return (selectedDepartment === 'Seleccionar' || avaluo.properties.nom_dep === selectedDepartment) &&
+                (selectedMunicipio === 'Seleccionar' || avaluo.properties.nom_mun === selectedMunicipio)&&
+                (selectedRegimen === 'Seleccionar'|| avaluo.properties.cond_juri === selectedRegimen);
+        })
+        .map(function (avaluo) {
+            return avaluo.properties.t_inmue;
+        });
+
+    // Obtener los tipos de inmueble únicos
+    var uniqueInmuebles = [...new Set(filteredInmuebles)].sort();
+
+    // Actualizar la lista de tipos de inmueble
+    var selectInmueble = document.getElementById('inmuTipo');
+    selectInmueble.innerHTML = "";
+    var optionSelectInmueble = document.createElement('option');
+    optionSelectInmueble.value = 'Seleccionar';
+    optionSelectInmueble.text = 'Seleccionar';
+    selectInmueble.add(optionSelectInmueble);
+
+    uniqueInmuebles.forEach(function (inmueble) {
+        var option = document.createElement('option');
+        option.value = inmueble;
+        option.text = inmueble;
+        selectInmueble.add(option);
+    });
+
+    // Filtrar los datos
+    filtrarCapas();
+});
+
+document.getElementById('periodoNumber').addEventListener('change', function () {
+    // Obtener el departamento, municipio y año seleccionados
+    var selectedDepartment = document.getElementById('departmentName').value;
+    var selectedMunicipio = document.getElementById('municipioName').value;
+    var selectedRegimen = document.getElementById('condJuridica').value;
+    var selectedPeriodo = this.value;
+
+
+    // Filtrar la lista de números de avalúo según el departamento y municipio seleccionados
+    var filteredInmuebles = originalAvaluoData.features
+        .filter(function (avaluo) {
+            return (selectedDepartment === 'Seleccionar' || avaluo.properties.nom_dep === selectedDepartment) &&
+                (selectedMunicipio === 'Seleccionar' || avaluo.properties.nom_mun === selectedMunicipio)&&
+                (selectedRegimen === 'Seleccionar'|| avaluo.properties.cond_juri === selectedRegimen)&&
+                (selectedPeriodo == 'Seleccionar'||avaluo.properties.periodo === selectedPeriodo);
+        })
+        .map(function (avaluo) {
+            return avaluo.properties.t_inmue;
+        });
+
+    // Obtener los tipos de inmueble únicos
+    var uniqueInmuebles = [...new Set(filteredInmuebles)].sort();
+
+    // Actualizar la lista de tipos de inmueble
+    var selectInmueble = document.getElementById('inmuTipo');
+    selectInmueble.innerHTML = "";
+    var optionSelectInmueble = document.createElement('option');
+    optionSelectInmueble.value = 'Seleccionar';
+    optionSelectInmueble.text = 'Seleccionar';
+    selectInmueble.add(optionSelectInmueble);
+
+    uniqueInmuebles.forEach(function (inmueble) {
+        var option = document.createElement('option');
+        option.value = inmueble;
+        option.text = inmueble;
+        selectInmueble.add(option);
+    });
+
+    // Filtrar los datos
+    filtrarCapas();
+});
+
+
+document.getElementById('estudioTipo').addEventListener('change', function () {
+    // Obtener el departamento, municipio, año y tipo de suelo seleccionados
+    var selectedDepartment = document.getElementById('departmentName').value;
+    var selectedPeriodo = document.getElementById('periodoNumber').value;
+    var selectedSuelo = document.getElementById('tipoSuelo').value;
+    var selectedMunicipio = document.getElementById('municipioName').value;
+    var selectedRegimen = document.getElementById('condJuridica').value;   
+    var selectedEstudio = this.value;
+
+
+    // Filtrar la lista de números de avalúo según el tipo de estudio
+    var filteredAvaluoNumbers = originalAvaluoData.features
+        .filter(function (avaluo) {
+            return (selectedDepartment === 'Seleccionar' || avaluo.properties.nom_dep === selectedDepartment) &&
+                (selectedMunicipio === 'Seleccionar' || avaluo.properties.nom_mun === selectedMunicipio)&&
+                (selectedPeriodo === 'Seleccionar' || avaluo.properties.periodo === selectedPeriodo)&&
+                (selectedSuelo === 'Seleccionar' || avaluo.properties.t_suelo === selectedSuelo)&&
+                (selectedRegimen === 'Seleccionar' || avaluo.properties.cond_juri === selectedRegimen)&&
+                (selectedEstudio === 'Seleccionar' || avaluo.properties.t_estudio === selectedEstudio);
+        })
+        .map(function (avaluo) {
+            return avaluo.properties.num_avaluo;
+        });
+
+    // Obtener los números de avalúo únicos
+    var uniqueAvaluoNumbers = [...new Set(filteredAvaluoNumbers)].sort();
+
+    // Actualizar la lista de números de avalúo
+    var selectAvaluoNumber = document.getElementById('avaluoNumber');
+    selectAvaluoNumber.innerHTML = "";
+    var optionSelectAvaluoNumber = document.createElement('option');
+    optionSelectAvaluoNumber.value = 'Seleccionar';
+    optionSelectAvaluoNumber.text = 'Seleccionar';
+    selectAvaluoNumber.add(optionSelectAvaluoNumber);
+
+    uniqueAvaluoNumbers.forEach(function (avaluoNumber) {
+        var option = document.createElement('option');
+        option.value = avaluoNumber;
+        option.text = avaluoNumber;
+        selectAvaluoNumber.add(option);
+    });
+
+    // Filtrar los datos
+    filtrarCapas();
+});
+
+// filtrar tipo estudio en funcion al departamento
+document.getElementById('departmentName').addEventListener('change', function () {
+    // Obtener el departamento seleccionado
+    var selectedDepartment = this.value;
+    var filteredEstudios = originalAvaluoData.features
+        .filter(function (avaluo) {
+            return selectedDepartment === 'Seleccionar' || avaluo.properties.nom_dep === selectedDepartment;
+        })
+        .map(function (avaluo) {
+            return avaluo.properties.t_estudio;
+        });
+
+    var uniqueEstudios = [...new Set(filteredEstudios)].sort();
+
+    // Actualizar la lista de tipos de inmueble
+    var selectEstudio = document.getElementById('estudioTipo');
+    selectEstudio.innerHTML = "";
+    var optionSelectEstudio = document.createElement('option');
+    optionSelectEstudio.value = 'Seleccionar';
+    optionSelectEstudio.text = 'Seleccionar';
+    selectEstudio.add(optionSelectEstudio);
+
+    uniqueEstudios.forEach(function (estudio) {
+        var option = document.createElement('option');
+        option.value = estudio;
+        option.text = estudio;
+        selectEstudio.add(option);
+    });
+
+    // Filtrar los datos
+    filtrarCapas();
+});
+
+// filtrar tipo estudio en funcion al departamento y municipio
+document.getElementById('municipioName').addEventListener('change', function () {
+    // Obtener el departamento y municipio seleccionados
+    var selectedDepartment = document.getElementById('departmentName').value;
+    var selectedMunicipio = this.value;
+    var filteredEstudios = originalAvaluoData.features
+        .filter(function (avaluo) {
+            return (selectedDepartment === 'Seleccionar' || avaluo.properties.nom_dep === selectedDepartment) &&
+                (selectedMunicipio === 'Seleccionar' || avaluo.properties.nom_mun === selectedMunicipio);
+        })
+        .map(function (avaluo) {
+            return avaluo.properties.t_estudio;
+        });
+
+    var uniqueEstudios = [...new Set(filteredEstudios)].sort();
+
+    // Actualizar la lista de tipos de inmueble
+    var selectEstudio = document.getElementById('estudioTipo');
+    selectEstudio.innerHTML = "";
+    var optionSelectEstudio = document.createElement('option');
+    optionSelectEstudio.value = 'Seleccionar';
+    optionSelectEstudio.text = 'Seleccionar';
+    selectEstudio.add(optionSelectEstudio);
+
+    uniqueEstudios.forEach(function (estudio) {
+        var option = document.createElement('option');
+        option.value = estudio;
+        option.text = estudio;
+        selectEstudio.add(option);
+    });
+
+    // Filtrar los datos
+    filtrarCapas();
+});
+
+//Filtrar tipo estudio en funcion a departamento, municipio y año
+
+document.getElementById('periodoNumber').addEventListener('change', function () {
+    // Obtener el departamento, municipio y año seleccionados
+    var selectedDepartment = document.getElementById('departmentName').value;
+    var selectedMunicipio = document.getElementById('municipioName').value;
+    var selectedPeriodo = this.value;
+    var filteredEstudios = originalAvaluoData.features
+    .filter(function (avaluo) {
+        return (selectedDepartment === 'Seleccionar' || avaluo.properties.nom_dep === selectedDepartment) &&
+                (selectedMunicipio === 'Seleccionar' || avaluo.properties.nom_mun === selectedMunicipio)&&
+                (selectedPeriodo === 'Seleccionar' || avaluo.properties.periodo === selectedPeriodo);
+        })
+        .map(function (avaluo) {
+            return avaluo.properties.t_estudio;
+        });
+
+    var uniqueEstudios = [...new Set(filteredEstudios)].sort();
+
+    // Actualizar la lista de tipos de inmueble
+    var selectEstudio = document.getElementById('estudioTipo');
+    selectEstudio.innerHTML = "";
+    var optionSelectEstudio = document.createElement('option');
+    optionSelectEstudio.value = 'Seleccionar';
+    optionSelectEstudio.text = 'Seleccionar';
+    selectEstudio.add(optionSelectEstudio);
+
+    uniqueEstudios.forEach(function (estudio) {
+        var option = document.createElement('option');
+        option.value = estudio;
+        option.text = estudio;
+        selectEstudio.add(option);
+    });
+
+    // Filtrar los datos
+    filtrarCapas();
+});
+
+// filtrar numero de proyecto en funcion al departamento
+document.getElementById('departmentName').addEventListener('change', function () {
+    // Obtener el departamento seleccionado
+    var selectedDepartment = this.value;
+    var filteredProyectos = originalAvaluoData.features
+        .filter(function (avaluo) {
+            return selectedDepartment === 'Seleccionar' || avaluo.properties.nom_dep === selectedDepartment;
+        })
+        .map(function (avaluo) {
+            return avaluo.properties.proy_num;
+        });
+
+    var uniqueProyectos = [...new Set(filteredProyectos)].sort();
+
+    // Actualizar la lista de tipos de inmueble
+    var selectProyecto = document.getElementById('proyectoNumber');
+    selectProyecto.innerHTML = "";
+    var optionSelectProyecto = document.createElement('option');
+    optionSelectProyecto.value = 'Seleccionar';
+    optionSelectProyecto.text = 'Seleccionar';
+    selectProyecto.add(optionSelectProyecto);
+
+    uniqueProyectos.forEach(function (proyecto) {
+        var option = document.createElement('option');
+        option.value = proyecto;
+        option.text = proyecto;
+        selectProyecto.add(option);
+    });
+
+    // Filtrar los datos
+    filtrarCapas();
+});
+
+// filtrar numero de proyecto en funcion al departamento y municipio
+document.getElementById('municipioName').addEventListener('change', function () {
+    // Obtener el departamento y municipio seleccionados
+    var selectedDepartment = document.getElementById('departmentName').value;
+    var selectedMunicipio = this.value;
+    var filteredProyectos = originalAvaluoData.features
+        .filter(function (avaluo) {
+            return (selectedDepartment === 'Seleccionar' || avaluo.properties.nom_dep === selectedDepartment) &&
+                (selectedMunicipio === 'Seleccionar' || avaluo.properties.nom_mun === selectedMunicipio);
+        })
+        .map(function (avaluo) {
+            return avaluo.properties.proy_num;
+        });
+
+    var uniqueProyectos = [...new Set(filteredProyectos)].sort();
+
+    // Actualizar la lista de tipos de inmueble
+    var selectProyecto = document.getElementById('proyectoNumber');
+    selectProyecto.innerHTML = "";
+    var optionSelectProyecto = document.createElement('option');
+    optionSelectProyecto.value = 'Seleccionar';
+    optionSelectProyecto.text = 'Seleccionar';
+    selectProyecto.add(optionSelectProyecto);
+
+    uniqueProyectos.forEach(function (proyecto) {
+        var option = document.createElement('option');
+        option.value = proyecto;
+        option.text = proyecto;
+        selectProyecto.add(option);
+    });
+
+    // Filtrar los datos
+    filtrarCapas();
+});
+
+// filtrar numero de proyecto en funcion al departamento, municipio y año
+document.getElementById('periodoNumber').addEventListener('change', function () {
+    // Obtener el departamento, municipio y año seleccionados
+    var selectedDepartment = document.getElementById('departmentName').value;
+    var selectedMunicipio = document.getElementById('municipioName').value;
+    var selectedPeriodo = this.value;
+    var filteredProyectos = originalAvaluoData.features
+        .filter(function (avaluo) {
+            return (selectedDepartment === 'Seleccionar' || avaluo.properties.nom_dep === selectedDepartment) &&
+                (selectedMunicipio === 'Seleccionar' || avaluo.properties.nom_mun === selectedMunicipio)&&
+                (selectedPeriodo === 'Seleccionar' || avaluo.properties.periodo === selectedPeriodo);
+        })
+        .map(function (avaluo) {
+            return avaluo.properties.proy_num;
+        });
+
+    var uniqueProyectos = [...new Set(filteredProyectos)].sort();
+
+    // Actualizar la lista de tipos de inmueble
+    var selectProyecto = document.getElementById('proyectoNumber');
+    selectProyecto.innerHTML = "";
+    var optionSelectProyecto = document.createElement('option');
+    optionSelectProyecto.value = 'Seleccionar';
+    optionSelectProyecto.text = 'Seleccionar';
+    selectProyecto.add(optionSelectProyecto);
+
+    uniqueProyectos.forEach(function (proyecto) {
+        var option = document.createElement('option');
+        option.value = proyecto;
+        option.text = proyecto;
+        selectProyecto.add(option);
+    });
+
+    // Filtrar los datos
+    filtrarCapas();
+});
+
+    function filtrarCapas() {
+    var departamentoSeleccionado = document.getElementById('departmentName').value;
+    var municipioSeleccionado = document.getElementById('municipioName').value;
+    var periodoSeleccionado = document.getElementById('periodoNumber').value;
+    var tipoSueloSeleccionado = document.getElementById('tipoSuelo').value;
+    var condicionJuridicaSeleccionada = document.getElementById('condJuridica').value;
+    var tipoEstudioSeleccionado = document.getElementById('estudioTipo').value;
+    var avaluoSeleccionado = document.getElementById('avaluoNumber').value;
+    var proyectoSeleccionado = document.getElementById('proyectoNumber').value;
+    var inmuebleSeleccionado = document.getElementById('inmuTipo').value;
+
+    // Limpia las capas existentes
+    oferta_nphLayer.clearLayers();
+    oferta_phLayer.clearLayers();
+    avaluoLayer.clearLayers();
+    municipioLayer.clearLayers();
+    predioLayer.clearLayers();
+    plusvaliaLayer.clearLayers();
+
+    var bounds = L.latLngBounds();
+
+    // Filtra y agrega datos a la capa municipioLayer
+    originalMunicipioData.features.forEach(function(feature) {
+        if (cumpleCriterios(feature, departamentoSeleccionado, municipioSeleccionado)) {
+            municipioLayer.addData(feature);
+            bounds.extend(municipioLayer.getBounds());
+        }
+    });
+
+    // Filtra y agrega datos a la capa predio
+    originalPredioData.features.forEach(function(feature) {
+        if (cumpleCriteriosPredio(feature, departamentoSeleccionado, municipioSeleccionado, tipoSueloSeleccionado, condicionJuridicaSeleccionada)) {
+            predioLayer.addData(feature);
+        }
+    });
+
+    // Filtra y agrega datos a la capa plusvalia
+    originalPlusvaliaData.features.forEach(function(feature) {
+        if (cumpleCriteriosPlusvalia(feature, departamentoSeleccionado, municipioSeleccionado,periodoSeleccionado)) {
+            plusvaliaLayer.addData(feature);
+        }
+    });
+
+    // Filtra y agrega datos a la capa oferta_nphLayer
+    originalOferta_nphData.features.forEach(function(feature) {
+        if (cumpleCriterios(feature, departamentoSeleccionado, municipioSeleccionado, periodoSeleccionado, tipoSueloSeleccionado, condicionJuridicaSeleccionada, 
+        tipoEstudioSeleccionado, inmuebleSeleccionado, proyectoSeleccionado, avaluoSeleccionado)) {
+            oferta_nphLayer.addData(feature);
+        }
+    });
+
+    // Filtra y agrega datos a la capa oferta_phLayer
+    originalOferta_phData.features.forEach(function(feature) {
+        if (cumpleCriterios(feature, departamentoSeleccionado, municipioSeleccionado, periodoSeleccionado, tipoSueloSeleccionado, condicionJuridicaSeleccionada, 
+        tipoEstudioSeleccionado, inmuebleSeleccionado, proyectoSeleccionado, avaluoSeleccionado)) {
+            oferta_phLayer.addData(feature);
+        }
+    });
+
+    // Filtra y agrega datos a la capa avaluoLayer
+    originalAvaluoData.features.forEach(function(feature) {
+        if (cumpleCriterios(feature, departamentoSeleccionado, municipioSeleccionado, periodoSeleccionado, tipoSueloSeleccionado, condicionJuridicaSeleccionada, 
+        tipoEstudioSeleccionado, proyectoSeleccionado, avaluoSeleccionado, inmuebleSeleccionado, false)) { // false para incluir inmuebleSeleccionado
+            avaluoLayer.addData(feature);
+        }
+    });
+
+    if (bounds.isValid()) {
+        // Enfocar el mapa en los límites de los municipios filtrados
+        map.fitBounds(bounds);
+    }
+
+}
+
+function cumpleCriterios(feature, departamentoSeleccionado, municipioSeleccionado, periodoSeleccionado, tipoSueloSeleccionado, condicionJuridicaSeleccionada, 
+tipoEstudioSeleccionado, proyectoSeleccionado, avaluoSeleccionado, inmuebleSeleccionado, excluirInmueble) {
+    return (departamentoSeleccionado === 'Seleccionar' || feature.properties.nom_dep === departamentoSeleccionado) &&
+           (municipioSeleccionado === 'Seleccionar' || feature.properties.nom_mun === municipioSeleccionado) &&
+           (periodoSeleccionado === 'Seleccionar' || feature.properties.periodo === periodoSeleccionado) &&
+           (tipoSueloSeleccionado === 'Seleccionar' || feature.properties.t_suelo === tipoSueloSeleccionado) &&
+           (condicionJuridicaSeleccionada === 'Seleccionar' || feature.properties.cond_juri === condicionJuridicaSeleccionada) &&
+           (tipoEstudioSeleccionado === 'Seleccionar' || feature.properties.t_estudio === tipoEstudioSeleccionado) &&
+           (proyectoSeleccionado === 'Seleccionar' || feature.properties.proy_num === proyectoSeleccionado) &&
+           (avaluoSeleccionado === 'Seleccionar' || feature.properties.num_avaluo === avaluoSeleccionado) &&
+           (excluirInmueble || inmuebleSeleccionado === 'Seleccionar' || feature.properties.t_inmue === inmuebleSeleccionado);
+}
+
+
+
+document.getElementById('toggleLabelsBtn').addEventListener('click', function() {
+    toggleLabels();
+});
+
+function cumpleCriteriosPredio(feature, departamentoSeleccionado, municipioSeleccionado, tipoSueloSeleccionado, condicionJuridicaSeleccionada, tipoEstudioSeleccionado) {
+    return (departamentoSeleccionado === 'Seleccionar' || feature.properties.nom_dep === departamentoSeleccionado) &&
+           (municipioSeleccionado === 'Seleccionar' || feature.properties.nom_mun === municipioSeleccionado)&&
+           (tipoSueloSeleccionado === 'Seleccionar' || feature.properties.t_suelo === tipoSueloSeleccionado) &&
+           (condicionJuridicaSeleccionada === 'Seleccionar' || feature.properties.cond_juri === condicionJuridicaSeleccionada);
+           
+}
+
+function cumpleCriteriosPlusvalia(feature, departamentoSeleccionado, municipioSeleccionado, periodoSeleccionado) {
+    return (departamentoSeleccionado === 'Seleccionar' || feature.properties.nom_dep === departamentoSeleccionado) &&
+           (municipioSeleccionado === 'Seleccionar' || feature.properties.nom_mun === municipioSeleccionado)&&
+           (periodoSeleccionado === 'Seleccionar' || feature.properties.periodo === periodoSeleccionado);
+
+           
+}
+
+
+function toggleLabels() {
+    labelsVisible = !labelsVisible; // Alternar el estado de visibilidad
+    avaluoLayer.eachLayer(function(layer) {
+        if (labelsVisible) {
+            // Si labelsVisible es true, muestra las etiquetas
+            if (!layer.getTooltip()) {
+                // Cambiado de 'avaluo' a 'v_m2_ter'
+                var formattedValue = Number(layer.feature.properties.v_m2_ter).toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
+                layer.bindTooltip('V_M2_TER: ' + formattedValue, { permanent: true, direction: 'top' }).openTooltip();
+            }
+        } else {
+            // Si labelsVisible es false, oculta las etiquetas
+            if (layer.getTooltip()) {
+                layer.unbindTooltip();
+            }
+        }
+    });
+}
+
+//funcion para visibilidad de los check box
+document.getElementById('municipioLayerCheckbox').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        municipioLayer.addTo(map);
+    } else {
+        map.removeLayer(municipioLayer);
+    }
+    actualizarOrdenCapas();
+});
+
+document.getElementById('predioLayerCheckbox').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        predioLayer.addTo(map);
+    } else {
+        map.removeLayer(predioLayer);
+    }
+    actualizarOrdenCapas();
+});
+
+document.getElementById('ofertaNPHLayerCheckbox').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        oferta_nphLayer.addTo(map);
+        oferta_nphLayer.bringToFront();
+    } else {
+        map.removeLayer(oferta_nphLayer);
+    }
+    actualizarOrdenCapas();
+});
+
+document.getElementById('ofertaPHLayerCheckbox').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        oferta_phLayer.addTo(map);
+        oferta_phLayer.bringToFront();
+    } else {
+        map.removeLayer(oferta_phLayer);
+    }
+    actualizarOrdenCapas();
+});
+
+document.getElementById('avaluoLayerCheckbox').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        avaluoLayer.addTo(map);
+        avaluoLayer.bringToFront();
+    } else {
+        map.removeLayer(avaluoLayer);
+    }
+    actualizarOrdenCapas();
+});
+document.getElementById('afectadoLayerCheckbox').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        predio_afectadoLayer.addTo(map);
+        predio_afectadoLayer.bringToFront();
+    } else {
+        map.removeLayer(predio_afectadoLayer);
+    }
+    actualizarOrdenCapas();
+});
+document.getElementById('proyectoLayerCheckbox').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        proyectoLayer.addTo(map);
+        proyectoLayer.bringToFront();
+    } else {
+        map.removeLayer(proyectoLayer);
+    }
+    actualizarOrdenCapas();
+});
+document.getElementById('valorizacionLayerCheckbox').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        valorizacionLayer.addTo(map);
+        valorizacionLayer.bringToFront();
+    } else {
+        map.removeLayer(valorizacionLayer);
+    }
+    actualizarOrdenCapas();
+});
+document.getElementById('plusvaliaLayerCheckbox').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        plusvaliaLayer.addTo(map);
+        plusvaliaLayer.bringToFront();
+    } else {
+        map.removeLayer(plusvaliaLayer);
+    }
+    actualizarOrdenCapas();
+});
+document.getElementById('predioInfluValoLayerCheckbox').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        predioInfluValoLayer.addTo(map);
+        predioInfluValoLayer.bringToFront();
+    } else {
+        map.removeLayer(predioInfluValoLayer);
+    }
+    actualizarOrdenCapas();
+});
+document.getElementById('conformacionLayerCheckbox').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        conformacionLayer.addTo(map);
+        conformacionLayer.bringToFront();
+    } else {
+        map.removeLayer(conformacionLayer);
+    }
+    actualizarOrdenCapas();
+});
+
+document.getElementById('cenitLayerCheckbox').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        cenitLayer.addTo(map);
+        cenitLayer.bringToFront();
+    } else {
+        map.removeLayer(cenitLayer);
+    }
+    actualizarOrdenCapas();
+});
+
+document.getElementById('lcenitLayerCheckbox').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        lcenitLayer.addTo(map);
+        lcenitLayer.bringToFront();
+    } else {
+        map.removeLayer(lcenitLayer);
+    }
+    actualizarOrdenCapas();
+});
+
+document.getElementById('ivpLayerCheckbox').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        ivpLayer.addTo(map);
+        ivpLayer.bringToFront();
+    } else {
+        map.removeLayer(ivpLayer);
+    }
+    actualizarOrdenCapas();
+});
+
+document.getElementById('franjaLayerCheckbox').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        franjaLayer.addTo(map);
+        franjaLayer.bringToFront();
+    } else {
+        map.removeLayer(franjaLayer);
+    }
+    actualizarOrdenCapas();
+});
+
+document.getElementById('dictamenLayerCheckbox').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        dictamenLayer.addTo(map);
+        dictamenLayer.bringToFront();
+    } else {
+        map.removeLayer(dictamenLayer);
+    }
+    actualizarOrdenCapas();
+});
+
+
+
+function actualizarOrdenCapas() {
+    // Asegúrate de que las capas existan y estén añadidas al mapa antes de llamar a bringToFront/bringToBack
+    if (map.hasLayer(municipioLayer)) {
+        municipioLayer.bringToBack(); // El municipio siempre en el fondo
+    }
+    if (map.hasLayer(cenitLayer)) {
+        cenitLayer.bringToFront(); // Predio sobre plusvalia
+    }
+    if (map.hasLayer(valorizacionLayer)) {
+        valorizacionLayer.bringToFront(); // Predio sobre plusvalia
+    }
+    if (map.hasLayer(ivpLayer)) {
+        ivpLayer.bringToFront(); // Predio sobre plusvalia
+    }
+    if (map.hasLayer(plusvaliaLayer)) {
+        plusvaliaLayer.bringToFront(); // Predio sobre plusvalia
+    }
+    if (map.hasLayer(conformacionLayer)) {
+        conformacionLayer.bringToFront(); // Predio sobre plusvalia
+    }
+    if (map.hasLayer(predioLayer)) {
+        predioLayer.bringToFront(); // Predio sobre plusvalia
+    }
+    if (map.hasLayer(proyectoLayer)) {
+        proyectoLayer.bringToFront(); // Predio sobre plusvalia
+    }
+    if (map.hasLayer(predioInfluValoLayer)) {
+        predioInfluValoLayer.bringToFront(); // Predio sobre plusvalia
+    }
+    if (map.hasLayer(predio_afectadoLayer)) {
+        predio_afectadoLayer.bringToFront(); // Predio sobre plusvalia
+    }
+
+
+    // Los puntos siempre en la parte superior
+    if (map.hasLayer(avaluoLayer)) {
+        avaluoLayer.bringToFront();
+    }
+    if (map.hasLayer(oferta_phLayer)) {
+        oferta_phLayer.bringToFront();
+    }
+    if (map.hasLayer(oferta_nphLayer)) {
+        oferta_nphLayer.bringToFront();
+    }
+}
+
+document.getElementById('resetButton').addEventListener('click', function() {
+    resetMap();
+});
+
+function resetMap() {
+    // Restablecer las listas desplegables
+    document.getElementById('departmentName').value = 'Seleccionar';
+    document.getElementById('municipioName').value = 'Seleccionar';
+    document.getElementById('periodoNumber').value = 'Seleccionar';
+    document.getElementById('condJuridica').value = 'Seleccionar';
+    document.getElementById('tipoSuelo').value = 'Seleccionar';
+    document.getElementById('inmuTipo').value = 'Seleccionar';
+    document.getElementById('estudioTipo').value = 'Seleccionar';
+    document.getElementById('proyectoNumber').value = 'Seleccionar';
+    document.getElementById('avaluoNumber').value = 'Seleccionar';
+
+    // Quitar todas las capas del mapa
+    map.removeLayer(avaluoLayer);
+    map.removeLayer(oferta_phLayer);
+    map.removeLayer(oferta_nphLayer);
+    map.removeLayer(municipioLayer);
+    map.removeLayer(predioLayer);
+    map.removeLayer(predio_afectadoLayer);
+    map.removeLayer(proyectoLayer);
+    map.removeLayer(valorizacionLayer);
+    map.removeLayer(plusvaliaLayer);
+    map.removeLayer(predioInfluValoLayer);
+    map.removeLayer(conformacionLayer);
+    map.removeLayer(cenitLayer);
+    map.removeLayer(lcenitLayer);
+    map.removeLayer(ivpLayer);
+    map.removeLayer(franjaLayer);
+    map.removeLayer(dictamenLayer);
+
+    // Restablecer el estado inicial de los checkboxes si es necesario
+    document.getElementById('avaluoLayerCheckbox').checked = false;
+    document.getElementById('ofertaPHLayerCheckbox').checked = false;
+    document.getElementById('ofertaNPHLayerCheckbox').checked = false;
+    document.getElementById('municipioLayerCheckbox').checked = false;
+    document.getElementById('predioLayerCheckbox').checked = false;
+    document.getElementById('afectadoLayerCheckbox').checked = false;
+    document.getElementById('proyectoLayerCheckbox').checked = false;
+    document.getElementById('valorizacionLayerCheckbox').checked = false;
+    document.getElementById('plusvaliaLayerCheckbox').checked = false;
+    document.getElementById('predioInfluValoLayerCheckbox').checked = false;
+    document.getElementById('conformacionLayerCheckbox').checked = false;
+    document.getElementById('cenitLayerCheckbox').checked = false;   
+    document.getElementById('lcenitLayerCheckbox').checked = false;
+    document.getElementById('ivpLayerCheckbox').checked = false;
+    document.getElementById('franjaLayerCheckbox').checked = false;
+    document.getElementById('dictamenLayerCheckbox').checked = false;
+
+
+    if (customLayer) {
+        map.removeLayer(customLayer);
+        document.getElementById('customLayerCheckbox').checked = false;
+    }
+    if (customLayer2) {
+        map.removeLayer(customLayer2);
+        document.getElementById('customLayer2Checkbox').checked = false;
+    }
+    if (customLayer3) {
+        map.removeLayer(customLayer3);
+        document.getElementById('customLayer3Checkbox').checked = false;
+    }
+    if (customLayer4) {
+        map.removeLayer(customLayer4);
+        document.getElementById('customLayer4Checkbox').checked = false;
+    }
+    if (customLayer5) {
+        map.removeLayer(customLayer5);
+
+        document.getElementById('customLayer5Checkbox').checked = false;
+    }
+    if (customLayer6) {
+        map.removeLayer(customLayer6);
+        document.getElementById('customLayer6Checkbox').checked = false;
+    }
+    if (customLayer7) {
+        map.removeLayer(customLayer7);
+        document.getElementById('customLayer7Checkbox').checked = false;
+    }
+
+    
+}
+
+function mostrarPanel(contenido, latlng) {
+    var modal = document.getElementById('miModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'miModal';
+        modal.style.position = 'fixed';
+        modal.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+        modal.style.padding = '15px';
+        modal.style.border = '1px solid gray';
+        modal.style.borderRadius = '8px';
+        modal.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+        modal.style.bottom = '20px';
+        modal.style.left = '20px';
+        modal.style.width = '500px'; // Ancho fijo
+        modal.style.maxHeight = '300px';
+        modal.style.overflowY = 'auto';
+        modal.style.zIndex = '1000';
+        modal.style.fontSize = '0.9rem';
+
+        var closeButton = document.createElement('button');
+        closeButton.textContent = 'Cerrar';
+        closeButton.style.backgroundColor = '#dc3545';
+        closeButton.style.color = 'white';
+        closeButton.style.border = 'none';
+        closeButton.style.padding = '5px 10px';
+        closeButton.style.marginTop = '10px';
+        closeButton.style.borderRadius = '4px';
+        closeButton.style.cursor = 'pointer';
+        closeButton.onclick = function() { modal.style.display = 'none'; };
+
+        modal.appendChild(closeButton);
+        document.body.appendChild(modal);
+    }
+
+    while (modal.children.length > 1) {
+        modal.removeChild(modal.lastChild);
+    }
+
+    var contentDiv = document.createElement('div');
+    contentDiv.innerHTML = contenido;
+    modal.appendChild(contentDiv);
+
+    // Mostrar el modal
+    modal.style.display = 'block';
+}
+
+function buscarObjetosCercanos(latlng, capa, distancia = 1) { // distancia en metros
+    var objetosCercanos = [];
+    capa.eachLayer(function(layer) {
+        if (latlng.distanceTo(layer.getLatLng()) <= distancia) {
+            objetosCercanos.push(layer);
+        }
+    });
+    return objetosCercanos;
+}
+
+function mostrarSeleccionObjetos(objetos, latlng, nombreCapa) {
+    var contenido = '<div>Seleccione el tipo de inmueble ' +  ':</div><ul>';
+    window.objetosTemporales = objetos;
+
+    objetos.forEach((objeto, index) => {
+        var tituloObjeto = objeto.feature.properties.t_inmue || "Objeto " + (index + 1); // Usar t_inmue si está disponible
+        contenido += '<li><a href="#" onclick="mostrarTablaAtributosDesdeObjeto(' + index + ', \'' + nombreCapa + '\')">' + tituloObjeto + '</a></li>';
+    });
+
+    contenido += '</ul>';
+    mostrarPanel(contenido, latlng);
+}
+
+function mostrarTablaAtributosDesdeObjeto(index, nombreCapa) {
+    if (window.objetosTemporales && window.objetosTemporales.length > index) {
+        var objetoSeleccionado = window.objetosTemporales[index];
+        if (objetoSeleccionado) {
+            mostrarTablaAtributos(objetoSeleccionado.feature.properties, objetoSeleccionado.getLatLng(), nombreCapa);
+        }
+    } else {
+        console.error("Objeto no encontrado en el índice: " + index);
+    }
+}
+
+
+function mostrarTablaAtributos(propiedades, latlng, nombreCapa) {
+    var contenidoTabla = '<div style="text-align: center; font-weight: bold; margin-bottom: 10px;">' + nombreCapa + '</div>' +
+                         '<table class="tabla-atributos" style="width: 100%; border-collapse: collapse;">';
+
+    for (var clave in propiedades) {
+        var valor = propiedades[clave];
+
+        // Omitir la fila si el valor es nulo o indefinido
+        if (valor == null || valor === '') continue;
+
+        // Lista de atributos para formatear en formato de dinero
+        var atributosDinero = ['v_cons', 'v_m2_cons', 'v_terreno', 'v_m2_ter', 'avaluo', 'v_anexo','v_m2_t_p1','v_m2_t_p2','V_M2_TER','V_M2_TER_MIN','V_M2_TER_MAX','v_m2_int','v_pedido','v_negociad','adminis','plusvalia',
+    'contri_m2', 'contri_tot', 'VR_MIN_M2', 'VR_MAX_M2', 'VALOR_MAX', 'VALOR_MIN','V_M2_MIN','V_M2_MAX'];
+
+        // Verificar si la clave está en la lista de atributos para formatear
+        if (atributosDinero.includes(clave)) {
+            valor = formatearComoDinero(valor);
+        }
+
+        // Manejo del botón para copiar el enlace de la imagen
+        if (clave === 'imagen') {
+            valor = '<button onclick="copiarAlPortapapeles(\'' + valor + '\')" class="boton-copiar">Copiar Enlace</button>';
+        }
+
+        contenidoTabla += '<tr style="border-bottom: 1px solid #000;">' +
+                          '<td style="padding: 4px; border-right: 1px solid #000; font-weight: bold; width: 30%;">' + clave + '</td>' +
+                          '<td style="padding: 4px; width: 70%;">' + valor + '</td></tr>';
+    }
+
+    contenidoTabla += '</table>';
+
+    mostrarPanel(contenidoTabla, latlng);
+}
+
+function formatearComoDinero(numero) {
+    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(numero);
+}
+
+function copiarAlPortapapeles(texto) {
+    // Crear un elemento input temporal
+    var inputTemp = document.createElement("input");
+    inputTemp.value = texto;
+
+    // Añadir el input al cuerpo del documento
+    document.body.appendChild(inputTemp);
+
+    // Seleccionar el contenido del input
+    inputTemp.select();
+    inputTemp.setSelectionRange(0, 99999); // Para dispositivos móviles
+
+    // Copiar el texto seleccionado
+    try {
+        var exitoso = document.execCommand('copy');
+        var msg = exitoso ? "Copiado" : "No se pudo copiar el enlace";
+        alert(msg);
+    } catch (err) {
+        alert("Error al copiar el enlace");
+    }
+
+    // Eliminar el input temporal
+    document.body.removeChild(inputTemp);
+}
+
+document.getElementById('exportToExcelBtn').addEventListener('click', function() {
+    exportToExcel();
+});
+
+function exportToExcel() {
+    var wb = XLSX.utils.book_new();// Crea un nuevo libro de trabajo
+
+    // Exportar datos de Avaluo
+    var avaluoData = getDataFromLayer(avaluoLayer, drawnPolygon);
+    var avaluoSheet = XLSX.utils.json_to_sheet(avaluoData);
+    XLSX.utils.book_append_sheet(wb, avaluoSheet, "Avaluos");
+
+    // Exportar datos de Oferta NPH
+    var ofertaNphData = getDataFromLayer(oferta_nphLayer, drawnPolygon);
+    var ofertaNphSheet = XLSX.utils.json_to_sheet(ofertaNphData);
+    XLSX.utils.book_append_sheet(wb, ofertaNphSheet, "Ofertas NPH");
+
+    // Exportar datos de Oferta PH
+    var ofertaPhData = getDataFromLayer(oferta_phLayer, drawnPolygon);
+    var ofertaPhSheet = XLSX.utils.json_to_sheet(ofertaPhData);
+    XLSX.utils.book_append_sheet(wb, ofertaPhSheet, "Ofertas PH");
+
+    // Exportar el libro de trabajo
+    XLSX.writeFile(wb, "Datos_exportados.xlsx");
+}
+
+function getDataFromLayer(layer, polygon) {
+    var data = [];
+    layer.eachLayer(function(layer) {
+        if (layer.feature && layer.feature.properties && polygon) {
+            if (polygon.getBounds().contains(layer.getLatLng())) {
+                data.push(layer.feature.properties);
+            }
+        } else if (layer.feature && layer.feature.properties) {
+            // Si no hay polígono, exportar todos los datos
+            data.push(layer.feature.properties);
+        }
+    });
+    return data;
+}
+
+function getRandomColor() {
+    var letters = '0123456789ABCDEF';
+    var color = '#';
+    for (var i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
+document.getElementById('uploadButton').addEventListener('click', function() {
+    document.getElementById('geojsonFile').click();
+});
+
+// Event listener para el input de archivo
+document.getElementById('geojsonFile').addEventListener('change', function(event) {
+    var file = event.target.files[0];
+
+    if (file) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var contents = e.target.result;
+            var json = JSON.parse(contents);
+            agregarCapaGeoJSON(json);
+        };
+        reader.readAsText(file);
+    }
+});
+
+function toggleGroup(groupId) {
+    var group = document.getElementById(groupId);
+    var arrow = group.previousElementSibling.querySelector('.arrow');
+    if (group.style.display === "none") {
+        group.style.display = "block";
+        arrow.classList.add('rotate');
+    } else {
+        group.style.display = "none";
+        arrow.classList.remove('rotate');
+    }
+}
+function toggleLegend() {
+    var legend = document.getElementById('legend');
+    var toggleButton = document.getElementById('toggleLegendButton');
+    if (legend.style.display === 'none') {
+        legend.style.display = 'block';
+        toggleButton.classList.add('open');
+        toggleButton.innerHTML = '&times;'; // Símbolo de cierre (equix)
+    } else {
+        legend.style.display = 'none';
+        toggleButton.classList.remove('open');
+        toggleButton.innerHTML = '&#9776;'; // Símbolo de menú (3 rayas)
+    }
+}
+
+function ordenarOpcionesSelect(idSelect) {
+    var select = document.getElementById(idSelect);
+    var opciones = Array.from(select.options);
+
+    // Ordenar las opciones (excepto la primera que es 'Seleccionar')
+    opciones.slice(1).sort(function(a, b) {
+        return a.text.localeCompare(b.text);
+    }).forEach(function(opcion) {
+        select.add(opcion);
+    });
+}
+ordenarOpcionesSelect('municipioName');
+
+ordenarOpcionesSelect('departmentName');
+ordenarOpcionesSelect('municipioName');
+
+</script>
